@@ -1,0 +1,85 @@
+#插件交流群: 362221212
+#作者QQ: 1098579051
+
+#绑定的GUI界面基本信息
+onInfo:
+  #GUI的名字
+  name: '§e梦绑定 §r- §d绑定界面'
+  #GUI的大小
+  size: 3
+  #GUI的打开指令
+  command: 'bindgui'
+  #GUI打开时播放的声音 (请自行查阅文献 否则删除本行即可)
+  music: NOTE
+#绑定的GUI界面内容
+onMenu:
+  #绑定栏
+  bind:
+    name: '§8[§b 绑定 §8]'
+    type: DIAMOND_SWORD
+    date: 0
+    lore:
+      - '§6【介绍】'
+      - '§r可以使手上物品进行绑定'
+    slots:
+      - 12
+    #类型 true为绑定 false 为解绑
+    bind: true
+    #所需经济
+    money:
+      #金币100
+      vault: 100
+      #点券100
+      points: 100
+  #解绑栏
+  unbind:
+    name: '§8[§b 解绑 §8]'
+    type: DIAMOND_SWORD
+    date: 0
+    lore:
+      - '§6【介绍】'
+      - '§r可以使手上物品进行解绑'
+    slots:
+      - 16
+    bind: false
+    money:
+      vault: 100
+      points: 100
+  #装饰
+  sss:
+    #名字
+    name: ''
+    #材质
+    type: STONE
+    #子材质
+    date: 0
+    #注释
+    lore:
+      - '用于装饰的'
+    #在菜单内的位置(1 直接就是第一个格子)
+    slots:
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      - 6
+      - 7
+      - 8
+      - 9
+      - 10
+      - 11
+      - 13
+      - 14
+      - 15
+      - 17
+      - 18
+      - 19
+      - 20
+      - 21
+      - 22
+      - 23
+      - 24
+      - 25
+      - 26
+      - 27

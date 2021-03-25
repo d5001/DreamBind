@@ -1,0 +1,8 @@
+name: DreamBind
+version: ${project.version}
+main: me.mcdcs.dreambind.DreamBind
+api-version: 1.16
+softdepend: [Vaulit]
+commands:
+  bind:
+    aliases: [bindreload,bindbag,unbind,bindstone,bindtype,bindonpickup,bindonuse,bindonequip]

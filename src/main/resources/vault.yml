@@ -1,0 +1,24 @@
+#插件交流群: 362221212
+#作者QQ: 1098579051
+
+#vault金币
+vault:
+  #货币类型
+  type: vault
+#points的货币获取
+points:
+  type: custom
+  get: Points.UUID
+  folder: 'PlayerPoints/storage.yml'
+#其他货币 以credit插件举例
+credit:
+  type: custom
+  #信息以玩家名字为开头
+  get: name
+  #必须要注意大小写
+  folder: 'Credit/credit.yml'
+#其他货币 该插件检测UUID
+money:
+  type: custom
+  get: UUID
+  folder: 'Money/money.yml'

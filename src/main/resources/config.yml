@@ -1,0 +1,149 @@
+#插件交流群: 362221212
+#作者QQ: 1098579051
+
+#绑定指令权限节点
+onBindCommand: 'DreamBind.use'
+#绑定的Lore识别 第一行为主要绑定信息
+onBindLore:
+  - §6梦绑定
+#另外一种绑定的Lore识别 仅兼容 (例如 §e绑定: 那就是 §e绑定:5001 )
+onBindName:
+  - '§e绑定:'
+#拾取绑定Lore识别
+onBindPickup:
+  - §4拾取后绑定
+#装备绑定Lore识别
+onBindEquip:
+  - §4装备后绑定
+#使用绑定Lore识别
+onBindUse:
+  - §4使用后绑定
+
+#绑定物品死亡不掉落
+onDeath: true
+#绑定物品是否禁止丢弃
+onDrop: true
+#绑定物品是否禁止被伤害 (例如:仙人掌 火焰 岩浆)
+onDamage: true
+#绑定物品是否禁止通过漏斗流动
+onMove: true
+#指定绑定物品禁止右键实体(理论可以防止拔刀剑放上架子上)
+onEntity:
+  #是否开启
+  onStart: false
+  #限制的物品名(必须英文)
+  onList:
+    - STONE
+#绑定物品是否禁止右键
+onRight:
+  #右键方块
+  onBlock: false
+  #右键空气
+  onAir: false
+#绑定物品是否禁止左键
+onLeft:
+  #左键方块
+  onBlock: false
+  #左键空气
+  onAir: false
+
+#死亡不掉落的Lore识别
+onKeepLore:
+  - §4死亡不掉落
+#死亡不掉落石 /bindstone 3 <玩家名> <数量>
+onKeepStone:
+  #名字
+  name: '§d死亡不掉落石'
+  #材质
+  type: BRICK
+  #子材质
+  date: 0
+  #注释
+  lore:
+    - '§e作用:§a 使物品死亡不掉落'
+    - '§e使用:'
+    - '§f - §a打开背包点击单个死亡不掉落石'
+    - '§f - §a移动光标至欲死亡不掉落物品'
+    - '§f - §a点击欲死亡不掉物品即可进行添加'
+
+#是否开启绑定物品禁止使用某些指令
+onCommand: true
+#是否禁止所有命令
+onCmdAll: false
+#禁止的指令开头列表
+onCmdList:
+  - '/market'
+
+#绑定石部分内容
+onBindStone:
+  #是否开启绑定石
+  onStart: false
+  #绑定石内容
+  onItem:
+    #名字
+    name: '§d绑定石'
+    #材质
+    type: COAL
+    #子材质
+    date: 0
+    #注释
+    lore:
+      - '§e作用:§a 绑定物品使用'
+      - '§e使用:'
+      - '§f - §a打开背包点击单个绑定石'
+      - '§f - §a移动光标至欲绑定物品'
+      - '§f - §a点击欲绑定物品即可进行绑定'
+  #解绑石内容
+  unItem:
+    #名字
+    name: '§d解绑石'
+    #材质
+    type: COAL
+    #子材质
+    date: 0
+    #注释
+    lore:
+      - '§e作用:§a 解绑物品使用'
+      - '§e使用:'
+      - '§f - §a打开背包点击单个解绑石'
+      - '§f - §a移动光标至欲解绑物品'
+      - '§f - §a点击欲解绑物品即可进行解绑'
+  #绑定限制
+  onBind:
+    #是否限制材质包
+    onType: false
+    #如果限制材质包请列举所有可以绑定的物品材质 (必须大写)
+    onBindType:
+      - DIAMOND_SWORD
+
+#自动绑定
+onAuto: false
+#是否限制材质
+onType: false
+#开启自动绑定的事件
+onEvent:
+  #拾取物品事件
+  onPickup: true
+  #切换手上物品事件
+  onHand: true
+  #副手切换物品
+  onSwap: true
+#如果限制材质请列举所有可以绑定的物品材质 (必须大写)
+onBindType:
+  - DIAMOND_SWORD
+
+#是否限制绑定物品进入某些名字的物品栏内
+onInventory: false
+#准确定位
+onAccurate:
+  - '§c垃圾桶'
+#模糊定位 (关键词)
+onBlurred:
+  - '回收中心'
+
+#全服地上物品检测绑定物品 自动归还所有者
+onServer:
+  #是否开启该功能
+  onStart: false
+  #每隔多久进行一次检测 (建议小于扫地大妈频率)
+  onTime: 120

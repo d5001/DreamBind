@@ -87,7 +87,7 @@ public final class DreamBind extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new Event(),this);
 
         BukkitTask task = new me.mcdcs.dreambind.DreamBind.Runnable().runTaskTimer(this,0,12000);
-        BukkitTask onInventory = new me.mcdcs.dreambind.DreamBind.onInventory().runTaskTimer(this,0,5);
+        BukkitTask onInventory = new me.mcdcs.dreambind.DreamBind.onInventory().runTaskTimerAsynchronously(this,0,10);
 
         Objects.requireNonNull(getCommand("bind")).setExecutor(new Command());
 
@@ -106,6 +106,40 @@ public final class DreamBind extends JavaPlugin {
         @Override
         public boolean onCommand(CommandSender sender, org.bukkit.command.Command command, String label, String[] args) {
             switch (label.toLowerCase()) {
+                case "bindall":
+                    if (sender.isOp() | sender.hasPermission(Objects.requireNonNull(config.getString("onBindCommand", "DreamBind.bindall")))){
+                        Player bp = null;
+                        if (args.length >= 1){
+                            if (Bukkit.getPlayer(args[0]) != null){
+                                bp = Bukkit.getPlayer(args[0]);
+                            }
+                        }
+                        if (bp == null){
+                            if (sender instanceof Player){
+                                bp = (Player) sender;
+                            }
+                        }
+                        if (bp != null){
+                            int i = 0;
+                            while (i < bp.getInventory().getSize()){
+                                ItemStack is = bp.getInventory().getItem(i);
+                                if (is != null){
+                                    if (!isBind(is)){
+                                        setBind(is,bp);
+                                        bp.getInventory().setItem(i,is);
+                                    }
+                                }
+                            }
+                            bp.sendMessage("§f[§bDreamBind§f] §a成功绑定完你背包所有的物品！");
+                            if (sender != bp){
+                                sender.sendMessage("§f[§bDreamBind§f] §a已经绑定成功对应目标玩家的背包物品！");
+                            }
+                        }else {
+                            sender.sendMessage("§f[§bDreamBind§f] §c无法锁定绑定背包的玩家!");
+                        }
+                    }else {
+                        sender.sendMessage("§f[§bDreamBind§f] §c你没有使用这个命令的权限!");
+                    }
                 case "bindreload":
                     if (sender.isOp()) {
                         DreamBind pl = DreamBind.getPlugin(DreamBind.class);
@@ -129,9 +163,9 @@ public final class DreamBind extends JavaPlugin {
                             System.out.println("[DreamBind]正在加载bind.yml文件");
                         }
                         bindgui = YamlConfiguration.loadConfiguration(bindfile);
-                        sender.sendMessage("§r[§bDreamBind§r] §a插件已经成功重载完毕!");
+                        sender.sendMessage("§f[§bDreamBind§f] §a插件已经成功重载完毕!");
                     } else {
-                        sender.sendMessage("§r[§bDreamBind§r] §c只有OP才能使用该命令!");
+                        sender.sendMessage("§f[§bDreamBind§f] §c只有OP才能使用该命令!");
                     }
                     break;
                 case "bindtype":
@@ -139,7 +173,7 @@ public final class DreamBind extends JavaPlugin {
                         Player p = (Player) sender;
                         p.sendMessage(p.getItemInHand().getType().toString());
                     } else {
-                        sender.sendMessage("§r[§bDreamBind§r] §c只有玩家才能进行该命令！");
+                        sender.sendMessage("§f[§bDreamBind§f] §c只有玩家才能进行该命令！");
                     }
                     break;
                 case "bindonpickup":
@@ -147,23 +181,23 @@ public final class DreamBind extends JavaPlugin {
                         if (sender instanceof Player) {
                             if (((Player) sender).getItemInHand().getType() != Material.AIR) {
                                 if (isBindPickup(((Player) sender).getItemInHand())) {
-                                    sender.sendMessage("§r[§bDreamBind§r] §c已经有了该类型的绑定！");
+                                    sender.sendMessage("§f[§bDreamBind§f] §c已经有了该类型的绑定！");
                                 } else {
                                     if (isBind(((Player) sender).getItemInHand())) {
-                                        sender.sendMessage("§r[§bDreamBind§r] §c已经绑定过的物品无法进行该操作！");
+                                        sender.sendMessage("§f[§bDreamBind§f] §c已经绑定过的物品无法进行该操作！");
                                     } else {
                                         setBind((Player) sender, "onBindPickup");
-                                        sender.sendMessage("§r[§bDreamBind§r] §a成功为手上物品附加拾取绑定！");
+                                        sender.sendMessage("§f[§bDreamBind§f] §a成功为手上物品附加拾取绑定！");
                                     }
                                 }
                             } else {
-                                sender.sendMessage("§r[§bDreamBind§r] §c必须持有物品才能进行该命令！");
+                                sender.sendMessage("§f[§bDreamBind§f] §c必须持有物品才能进行该命令！");
                             }
                         } else {
-                            sender.sendMessage("§r[§bDreamBind§r] §c只有玩家才能进行该命令！");
+                            sender.sendMessage("§f[§bDreamBind§f] §c只有玩家才能进行该命令！");
                         }
                     } else {
-                        sender.sendMessage("§r[§bDreamBind§r] §c只有OP才能执行该命令！");
+                        sender.sendMessage("§f[§bDreamBind§f] §c只有OP才能执行该命令！");
                     }
                     break;
                 case "bindonuse":
@@ -171,23 +205,23 @@ public final class DreamBind extends JavaPlugin {
                         if (sender instanceof Player) {
                             if (((Player) sender).getItemInHand().getType() != Material.AIR) {
                                 if (isBindUse(((Player) sender).getItemInHand())) {
-                                    sender.sendMessage("§r[§bDreamBind§r] §c已经有了该类型的绑定！");
+                                    sender.sendMessage("§f[§bDreamBind§f] §c已经有了该类型的绑定！");
                                 } else {
                                     if (isBind(((Player) sender).getItemInHand())) {
-                                        sender.sendMessage("§r[§bDreamBind§r] §c已经绑定过的物品无法进行该操作！");
+                                        sender.sendMessage("§f[§bDreamBind§f] §c已经绑定过的物品无法进行该操作！");
                                     } else {
                                         setBind((Player) sender, "onBindUse");
-                                        sender.sendMessage("§r[§bDreamBind§r] §a成功为手上物品附加使用绑定！");
+                                        sender.sendMessage("§f[§bDreamBind§f] §a成功为手上物品附加使用绑定！");
                                     }
                                 }
                             } else {
-                                sender.sendMessage("§r[§bDreamBind§r] §c必须持有物品才能进行该命令！");
+                                sender.sendMessage("§f[§bDreamBind§f] §c必须持有物品才能进行该命令！");
                             }
                         } else {
-                            sender.sendMessage("§r[§bDreamBind§r] §c只有玩家才能进行该命令！");
+                            sender.sendMessage("§f[§bDreamBind§f] §c只有玩家才能进行该命令！");
                         }
                     } else {
-                        sender.sendMessage("§r[§bDreamBind§r] §c只有OP才能执行该命令！");
+                        sender.sendMessage("§f[§bDreamBind§f] §c只有OP才能执行该命令！");
                     }
                     break;
                 case "bindonequip":
@@ -195,23 +229,23 @@ public final class DreamBind extends JavaPlugin {
                         if (sender instanceof Player) {
                             if (((Player) sender).getItemInHand().getType() != Material.AIR) {
                                 if (isBindEquip(((Player) sender).getItemInHand())) {
-                                    sender.sendMessage("§r[§bDreamBind§r] §c已经有了该类型的绑定！");
+                                    sender.sendMessage("§f[§bDreamBind§f] §c已经有了该类型的绑定！");
                                 } else {
                                     if (isBind(((Player) sender).getItemInHand())) {
-                                        sender.sendMessage("§r[§bDreamBind§r] §c已经绑定过的物品无法进行该操作！");
+                                        sender.sendMessage("§f[§bDreamBind§f] §c已经绑定过的物品无法进行该操作！");
                                     } else {
                                         setBind((Player) sender, "onBindEquip");
-                                        sender.sendMessage("§r[§bDreamBind§r] §a成功为手上物品附加装备绑定！");
+                                        sender.sendMessage("§f[§bDreamBind§f] §a成功为手上物品附加装备绑定！");
                                     }
                                 }
                             } else {
-                                sender.sendMessage("§r[§bDreamBind§r] §c必须持有物品才能进行该命令！");
+                                sender.sendMessage("§f[§bDreamBind§f] §c必须持有物品才能进行该命令！");
                             }
                         } else {
-                            sender.sendMessage("§r[§bDreamBind§r] §c只有玩家才能进行该命令！");
+                            sender.sendMessage("§f[§bDreamBind§f] §c只有玩家才能进行该命令！");
                         }
                     } else {
-                        sender.sendMessage("§r[§bDreamBind§r] §c只有OP才能执行该命令！");
+                        sender.sendMessage("§f[§bDreamBind§f] §c只有OP才能执行该命令！");
                     }
                     break;
                 case "bindstone":
@@ -220,72 +254,82 @@ public final class DreamBind extends JavaPlugin {
                             if (number(args[0])) {
                                 if (number(args[2])) {
                                     if (Bukkit.getPlayer(args[1]) == null) {
-                                        sender.sendMessage("§r[§bDreamBind§r] §c指令§d/bindstone <1/2/3> <玩家名> <数量>");
+                                        sender.sendMessage("§f[§bDreamBind§f] §c指令§d/bindstone <1/2/3> <玩家名> <数量>");
                                     } else {
-                                        sender.sendMessage("§r[§bDreamBind§r] §a已经成功将绑定石给予对应玩家!");
+                                        sender.sendMessage("§f[§bDreamBind§f] §a已经成功将绑定石给予对应玩家!");
                                         Objects.requireNonNull(Bukkit.getPlayer(args[1])).getInventory().addItem(getStone(Integer.parseInt(args[2]), Integer.parseInt(args[0])));
                                         if (args[0].equals("1")) {
-                                            Objects.requireNonNull(Bukkit.getPlayer(args[1])).sendMessage("§r[§bDreamBind§r] §a你收到了一些绑定石");
+                                            Objects.requireNonNull(Bukkit.getPlayer(args[1])).sendMessage("§f[§bDreamBind§f] §a你收到了一些绑定石");
                                         } else if (args[0].equals("2")) {
-                                            Objects.requireNonNull(Bukkit.getPlayer(args[1])).sendMessage("§r[§bDreamBind§r] §a你收到了一些解绑石");
+                                            Objects.requireNonNull(Bukkit.getPlayer(args[1])).sendMessage("§f[§bDreamBind§f] §a你收到了一些解绑石");
                                         } else {
-                                            Objects.requireNonNull(Bukkit.getPlayer(args[1])).sendMessage("§r[§bDreamBind§r] §a你收到了一些死亡不掉落石");
+                                            Objects.requireNonNull(Bukkit.getPlayer(args[1])).sendMessage("§f[§bDreamBind§f] §a你收到了一些死亡不掉落石");
                                         }
                                     }
                                 } else {
-                                    sender.sendMessage("§r[§bDreamBind§r] §c指令§d/bindstone <1/2/3> <玩家名> <数量>");
+                                    sender.sendMessage("§f[§bDreamBind§f] §c指令§d/bindstone <1/2/3> <玩家名> <数量>");
                                 }
                             } else {
-                                sender.sendMessage("§r[§bDreamBind§r] §c指令§d/bindstone <1/2/3> <玩家名> <数量>");
+                                sender.sendMessage("§f[§bDreamBind§f] §c指令§d/bindstone <1/2/3> <玩家名> <数量>");
                             }
                         } else {
-                            sender.sendMessage("§r[§bDreamBind§r] §c指令§d/bindstone <1/2/3> <玩家名> <数量>");
+                            sender.sendMessage("§f[§bDreamBind§f] §c指令§d/bindstone <1/2/3> <玩家名> <数量>");
                         }
                     } else {
-                        sender.sendMessage("§r[§bDreamBind§r] §c只有OP才能使用该命令!");
+                        sender.sendMessage("§f[§bDreamBind§f] §c只有OP才能使用该命令!");
                     }
                     break;
                 default:
                     if (sender instanceof Player) {
                         switch (label.toLowerCase()) {
                             case "bind":
-                                if (sender.isOp() | sender.hasPermission(Objects.requireNonNull(config.getString("onBindCommand", "DreamBind.use")))) {
+                                if (sender.isOp() | sender.hasPermission(Objects.requireNonNull(config.getString("onBindCommand", "DreamBind.bind")))) {
                                     if (setBind((Player) sender)) {
-                                        sender.sendMessage("§r[§bDreamBind§r] §a手上物品成功被绑定!");
+                                        sender.sendMessage("§f[§bDreamBind§f] §a手上物品成功被绑定!");
                                     } else {
-                                        sender.sendMessage("§r[§bDreamBind§r] §a手上物品无法被绑定!");
+                                        sender.sendMessage("§f[§bDreamBind§f] §a手上物品无法被绑定!");
                                     }
                                 } else {
-                                    sender.sendMessage("§r[§bDreamBind§r] §c你没有权限使用该命令!");
+                                    sender.sendMessage("§f[§bDreamBind§f] §c你没有权限使用该命令!");
                                 }
                                 break;
                             case "bindbag":
                                 if (bag.getConfigurationSection(sender.getName()) != null) {
                                     int i = Objects.requireNonNull(bag.getConfigurationSection(sender.getName())).getKeys(true).size();
                                     if (i > 0) {
-                                        sender.sendMessage("§r[§bDreamBind§r] §a已经为你自动打开绑定箱,请拿走绑定箱内物品!");
+                                        sender.sendMessage("§f[§bDreamBind§f] §a已经为你自动打开绑定箱,请拿走绑定箱内物品!");
                                         openBag((Player) sender);
                                     } else {
-                                        sender.sendMessage("§r[§bDreamBind§r] §a你并未存在任何物品在绑定箱内!");
+                                        sender.sendMessage("§f[§bDreamBind§f] §a你并未存在任何物品在绑定箱内!");
                                     }
                                 } else {
-                                    sender.sendMessage("§r[§bDreamBind§r] §a你并未存在任何物品在绑定箱内!");
+                                    sender.sendMessage("§f[§bDreamBind§f] §a你并未存在任何物品在绑定箱内!");
                                 }
                                 break;
                             case "unbind":
-                                if (sender.isOp() | sender.hasPermission(Objects.requireNonNull(config.getString("onBindCommand", "DreamBind.use")))) {
-                                    if (unBind((Player) sender)) {
-                                        sender.sendMessage("§r[§bDreamBind§r] §a手上物品成功解除绑定!");
-                                    } else {
-                                        sender.sendMessage("§r[§bDreamBind§r] §a手上物品无法被解除绑定!");
+                                if (sender.isOp() | sender.hasPermission(Objects.requireNonNull(config.getString("onBindCommand", "DreamBind.unbind")))) {
+                                    boolean b = true;
+                                    if (!sender.isOp()){
+                                        if (!isOwner(((Player) sender).getItemInHand(), (Player) sender)){
+                                            b = false;
+                                        }
+                                    }
+                                    if (b){
+                                        if (unBind((Player) sender)) {
+                                            sender.sendMessage("§f[§bDreamBind§f] §a手上物品成功解除绑定!");
+                                        } else {
+                                            sender.sendMessage("§f[§bDreamBind§f] §a手上物品无法被解除绑定!");
+                                        }
+                                    }else {
+                                        sender.sendMessage("§f[§bDreamBind§f] §a你无法解除不是你的绑定物品！");
                                     }
                                 } else {
-                                    sender.sendMessage("§r[§bDreamBind§r] §c你没有权限使用该命令!");
+                                    sender.sendMessage("§f[§bDreamBind§f] §c你没有权限使用该命令!");
                                 }
                                 break;
                         }
                     } else {
-                        sender.sendMessage("§r[§bDreamBind§r] §c只有玩家才能执行该命令！");
+                        sender.sendMessage("§f[§bDreamBind§f] §c只有玩家才能执行该命令！");
                     }
                     break;
             }
@@ -298,7 +342,7 @@ public final class DreamBind extends JavaPlugin {
         public void run() {
             if (config.getBoolean("onServer.onStart")){
                 onTime++;
-                if (onTime/4 == config.getInt("onServer.onTime")){
+                if (onTime/2 == config.getInt("onServer.onTime")){
                     for (World w : Bukkit.getWorlds()){
                         for (Entity entity : w.getEntities()){
                             if (entity instanceof Item){
@@ -349,8 +393,8 @@ public final class DreamBind extends JavaPlugin {
                     if (p.getEquipment().getHelmet() != null){
                         itemStack = p.getEquipment().getHelmet();
                         if (itemStack.getType() != Material.AIR){
-                            if (isBindEquip(itemStack)){
-                                setBind(p,itemStack);
+                            if (isBindEquip(itemStack)) {
+                                setBind(p, itemStack);
                                 p.getEquipment().setHelmet(itemStack);
                             }
                         }
@@ -431,7 +475,7 @@ public final class DreamBind extends JavaPlugin {
                 if (bag.getConfigurationSection(p.getName()) != null){
                     int i = Objects.requireNonNull(bag.getConfigurationSection(p.getName())).getKeys(true).size();
                     if (i > 0){
-                        p.sendMessage("§r[§bDreamBind§r] §a你的绑定箱内存在物品,请输入§d/bindbag §a收入背包!");
+                        p.sendMessage("§f[§bDreamBind§f] §a你的绑定箱内存在物品,请输入§d/bindbag §a收入背包!");
                     }
                 }
             }
@@ -479,7 +523,7 @@ public final class DreamBind extends JavaPlugin {
             if (e.getPlayerItem().getType() != Material.AIR){
                 if (isBind(e.getPlayerItem())){
                     e.setCancelled(true);
-                    e.getPlayer().sendMessage("§r[§bDreamBind§r] §a被绑定的物品无法放置在盔甲架上!");
+                    e.getPlayer().sendMessage("§f[§bDreamBind§f] §a被绑定的物品无法放置在盔甲架上!");
                 }
             }
         }
@@ -492,7 +536,7 @@ public final class DreamBind extends JavaPlugin {
                 if (e.getPlayer().getItemInHand().getType() != Material.AIR){
                     if (config.getStringList("onEntity.onList").contains(e.getPlayer().getItemInHand().getType().toString())){
                         e.setCancelled(true);
-                        e.getPlayer().sendMessage("§r[§bDreamBind§r] §c该绑定物品禁止右键实体！");
+                        e.getPlayer().sendMessage("§f[§bDreamBind§f] §c该绑定物品禁止右键实体！");
                     }
                 }
             }
@@ -528,7 +572,7 @@ public final class DreamBind extends JavaPlugin {
                         }
                         if (b){
                             e.setCancelled(true);
-                            e.getPlayer().sendMessage("§r[§bDreamBind§r] §c手持绑定物品禁止执行该命令!");
+                            e.getPlayer().sendMessage("§f[§bDreamBind§f] §c手持绑定物品禁止执行该命令!");
                         }
                     }
                 }
@@ -538,9 +582,9 @@ public final class DreamBind extends JavaPlugin {
                     e.setCancelled(true);
                     if (e.getPlayer().getItemInHand().getType() != Material.AIR){
                         Gui(e.getPlayer());
-                        e.getPlayer().sendMessage("§r[§bDreamBind§r] §a已经为你打开绑定菜单");
+                        e.getPlayer().sendMessage("§f[§bDreamBind§f] §a已经为你打开绑定菜单");
                     }else {
-                        e.getPlayer().sendMessage("§r[§bDreamBind§r] §c必须手持物品才能打开绑定菜单！");
+                        e.getPlayer().sendMessage("§f[§bDreamBind§f] §c必须手持物品才能打开绑定菜单！");
                     }
                 }
             }
@@ -568,14 +612,17 @@ public final class DreamBind extends JavaPlugin {
 
         @EventHandler(priority = EventPriority.MONITOR)
         public void onJoin(PlayerJoinEvent e){
-            if (config.getConfigurationSection(e.getPlayer().getName()) != null){
-                Timer timer = new Timer();
-                timer.schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        e.getPlayer().sendMessage("§r[§bDreamBind§r] §a你的绑定箱内存在物品,请输入§d/bindbag §a收入背包!");
-                    }
-                },100);
+            if (bag.getConfigurationSection(e.getPlayer().getName()) != null){
+                int i = Objects.requireNonNull(bag.getConfigurationSection(e.getPlayer().getName())).getKeys(true).size();
+                if (i > 0){
+                    Timer timer = new Timer();
+                    timer.schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            e.getPlayer().sendMessage("§f[§bDreamBind§f] §a你的绑定箱内存在物品,请输入§d/bindbag §a收入背包!");
+                        }
+                    },100);
+                }
             }
         }
 
@@ -611,7 +658,7 @@ public final class DreamBind extends JavaPlugin {
                         }
                     }
                     if (b){
-                        e.getEntity().sendMessage("§r[§bDreamBind§r] §a你绑定的物品由于死亡掉落放置在了绑定箱内!");
+                        e.getEntity().sendMessage("§f[§bDreamBind§f] §a你绑定的物品由于死亡掉落放置在了绑定箱内!");
                     }
             }
         }
@@ -687,7 +734,7 @@ public final class DreamBind extends JavaPlugin {
                         e.setCancelled(true);
                         addItem(itemStack,getOwner(itemStack));
                         e.getItem().remove();
-                        e.getPlayer().sendMessage("§r[§bDreamBind§r] §a你所拾取的物品已经被绑定,已经将其归还为所有者!");
+                        e.getPlayer().sendMessage("§f[§bDreamBind§f] §a你所拾取的物品已经被绑定,已经将其归还为所有者!");
                     }
                 }
             }else {
@@ -724,14 +771,14 @@ public final class DreamBind extends JavaPlugin {
                                 addItem(itemStack, e.getPlayer());
                             } else {
                                 e.setCancelled(true);
-                                e.getPlayer().sendMessage("§r[§bDreamBind§r] §a禁止丢弃已经绑定过的物品!");
+                                e.getPlayer().sendMessage("§f[§bDreamBind§f] §a禁止丢弃已经绑定过的物品!");
                             }
                         } else {
                             if (hasPlayer(getOwner(itemStack))) {
                                 DropItemList.add(e.getItemDrop());
                                 addItem(itemStack, getOwner(itemStack));
                                 e.getItemDrop().remove();
-                                e.getPlayer().sendMessage("§r[§bDreamBind§r] §a你所点击的物品已经被绑定,已经将其归还为所有者!");
+                                e.getPlayer().sendMessage("§f[§bDreamBind§f] §a你所点击的物品已经被绑定,已经将其归还为所有者!");
                             }
                         }
                     }else {
@@ -745,6 +792,15 @@ public final class DreamBind extends JavaPlugin {
         public void onOpen(InventoryOpenEvent e){
             if (!e.getPlayer().isOp()){
                 OpenList.add((Player) e.getPlayer());
+            }
+        }
+
+        @EventHandler
+        public void onLaunch(ProjectileLaunchEvent e){
+            if (e.getEntity() instanceof ItemStack){
+                if (isBind((ItemStack) e.getEntity())){
+                    e.setCancelled(true);
+                }
             }
         }
 
@@ -801,14 +857,14 @@ public final class DreamBind extends JavaPlugin {
                                 if (config.getStringList("onAccurate").contains(p.getOpenInventory().getTitle())){
                                     if (isBind(itemStack)){
                                         e.setCancelled(true);
-                                        p.sendMessage("§r[§bDreamBind§r] §c绑定物品禁止放入该物品栏内!");
+                                        p.sendMessage("§f[§bDreamBind§f] §c绑定物品禁止放入该物品栏内!");
                                     }
                                 }else {
                                     for (String s : config.getStringList("onBlurred")){
                                         if (p.getOpenInventory().getTitle().contains(s)){
                                             if (isBind(itemStack)){
                                                 e.setCancelled(true);
-                                                p.sendMessage("§r[§bDreamBind§r] §c绑定物品禁止放入该物品栏内!");
+                                                p.sendMessage("§f[§bDreamBind§f] §c绑定物品禁止放入该物品栏内!");
                                             }
                                         }
                                     }
@@ -818,13 +874,13 @@ public final class DreamBind extends JavaPlugin {
                         if (isBind(itemStack)){
                             if (!isOwner(itemStack,p)){
                                 if (p.isOp()){
-                                    p.sendMessage("§r[§bDreamBind§r] §a你正在不受限制的点击绑定物品!");
+                                    p.sendMessage("§f[§bDreamBind§f] §a你正在不受限制的点击绑定物品!");
                                 }else {
                                     if (e.getClickedInventory() == p.getInventory()){
                                         if (hasPlayer(getOwner(itemStack))){
                                             addItem(itemStack,getOwner(itemStack));
                                             e.setCurrentItem(new ItemStack(Material.AIR));
-                                            p.sendMessage("§r[§bDreamBind§r] §a你所点击的物品已经被绑定,已经将其归还为所有者!");
+                                            p.sendMessage("§f[§bDreamBind§f] §a你所点击的物品已经被绑定,已经将其归还为所有者!");
                                         }
                                     }else {
                                         e.setCancelled(true);
@@ -841,9 +897,9 @@ public final class DreamBind extends JavaPlugin {
                                                     unBind(itemStack,p);
                                                     e.setCurrentItem(itemStack);
                                                     e.setCancelled(true);
-                                                    p.sendMessage("§r[§bDreamBind§r] §c成功为该物品进行解绑!");
+                                                    p.sendMessage("§f[§bDreamBind§f] §c成功为该物品进行解绑!");
                                                 }else {
-                                                    p.sendMessage("§r[§bDreamBind§r] §c解绑石只能叠加一个进行装备绑定!");
+                                                    p.sendMessage("§f[§bDreamBind§f] §c解绑石只能叠加一个进行装备绑定!");
                                                 }
                                             }
                                         }
@@ -852,8 +908,12 @@ public final class DreamBind extends JavaPlugin {
                             }
                         }else {
                             if (isBindUse(itemStack)){
-                                setBind(p,itemStack);
-                                e.setCurrentItem(itemStack);
+                                if (e.getClickedInventory() == e.getWhoClicked().getInventory() | !config.getBoolean("onBindUseMore")){
+                                    if (!p.isOp()){
+                                        setBind(p,itemStack);
+                                        e.setCurrentItem(itemStack);
+                                    }
+                                }
                             }
                             if (config.getBoolean("onBindStone.onStart")){
                                 if (e.getCursor() != null){
@@ -866,12 +926,12 @@ public final class DreamBind extends JavaPlugin {
                                                     setBind(itemStack,p);
                                                     e.setCurrentItem(itemStack);
                                                     e.setCancelled(true);
-                                                    p.sendMessage("§r[§bDreamBind§r] §c成功为该物品进行绑定!");
+                                                    p.sendMessage("§f[§bDreamBind§f] §c成功为该物品进行绑定!");
                                                 }else {
-                                                    p.sendMessage("§r[§bDreamBind§r] §c该物品无法被进行绑定!");
+                                                    p.sendMessage("§f[§bDreamBind§f] §c该物品无法被进行绑定!");
                                                 }
                                             }else {
-                                                p.sendMessage("§r[§bDreamBind§r] §c绑定石只能叠加一个进行装备绑定!");
+                                                p.sendMessage("§f[§bDreamBind§f] §c绑定石只能叠加一个进行装备绑定!");
                                             }
                                         }
                                     }
@@ -888,9 +948,9 @@ public final class DreamBind extends JavaPlugin {
                                             setKeep(itemStack,p);
                                             e.setCurrentItem(itemStack);
                                             e.setCancelled(true);
-                                            p.sendMessage("§r[§bDreamBind§r] §c成功为该物品进行死亡不掉落绑定!");
+                                            p.sendMessage("§f[§bDreamBind§f] §c成功为该物品进行死亡不掉落绑定!");
                                         }else {
-                                            p.sendMessage("§r[§bDreamBind§r] §c死亡不掉落只能叠加一个进行装备绑定!");
+                                            p.sendMessage("§f[§bDreamBind§f] §c死亡不掉落只能叠加一个进行装备绑定!");
                                         }
                                     }
                                 }
@@ -903,24 +963,26 @@ public final class DreamBind extends JavaPlugin {
 
         @EventHandler(priority = EventPriority.MONITOR)
         public void onSpawn(ItemSpawnEvent e){
-            ItemStack itemStack = e.getEntity().getItemStack();
-            if (isBind(itemStack)){
-                if (DropItemList.contains(e.getEntity())) {
-                    DropItemList.remove(e.getEntity());
-                }else if (DeathItemList.contains(e.getEntity().getItemStack())){
-                    DeathItemList.remove(e.getEntity().getItemStack());
-                }else {
-                    if (hasPlayer(getOwner(itemStack))){
-                        if (Bukkit.getPlayer(getOwner(itemStack)) == null){
-                            addItem(itemStack,getOwner(itemStack));
-                        }else {
-                            if (Objects.requireNonNull(Bukkit.getPlayer(getOwner(itemStack))).isDead()){
-                                addBag(itemStack, Objects.requireNonNull(Bukkit.getPlayer(getOwner(itemStack))));
-                            }else {
+            if (config.getBoolean("Event.onSpawn")){
+                ItemStack itemStack = e.getEntity().getItemStack();
+                if (isBind(itemStack)){
+                    if (DropItemList.contains(e.getEntity())) {
+                        DropItemList.remove(e.getEntity());
+                    }else if (DeathItemList.contains(e.getEntity().getItemStack())){
+                        DeathItemList.remove(e.getEntity().getItemStack());
+                    }else {
+                        if (hasPlayer(getOwner(itemStack))){
+                            if (Bukkit.getPlayer(getOwner(itemStack)) == null){
                                 addItem(itemStack,getOwner(itemStack));
+                            }else {
+                                if (Objects.requireNonNull(Bukkit.getPlayer(getOwner(itemStack))).isDead()){
+                                    addBag(itemStack, Objects.requireNonNull(Bukkit.getPlayer(getOwner(itemStack))));
+                                }else {
+                                    addItem(itemStack,getOwner(itemStack));
+                                }
                             }
+                            e.getEntity().remove();
                         }
-                        e.getEntity().remove();
                     }
                 }
             }
@@ -999,7 +1061,7 @@ public final class DreamBind extends JavaPlugin {
             }
             if (b){
                 e.setCancelled(true);
-                e.getPlayer().sendMessage("§r[§bDreamBind§r] §c该方块内含有绑定物品,禁止被破坏!");
+                e.getPlayer().sendMessage("§f[§bDreamBind§f] §c该方块内含有绑定物品,禁止被破坏!");
             }
         }
 
@@ -1028,6 +1090,11 @@ public final class DreamBind extends JavaPlugin {
             for (OfflinePlayer player : Bukkit.getOfflinePlayers()){
                 if (Objects.equals(player.getName(), s)){
                     i = 1;
+                    break;
+                }else if (player.getUniqueId().toString().equals(s)){
+                    i = 1;
+                    s = player.getName();
+                    break;
                 }
             }
         }
@@ -1063,14 +1130,14 @@ public final class DreamBind extends JavaPlugin {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                p.sendMessage("§r[§bDreamBind§r] §a您的绑定物品由于某种原因归还至绑定箱！");
+                p.sendMessage("§f[§bDreamBind§f] §a您的绑定物品由于某种原因归还至绑定箱！");
             }else {
                 p.getEnderChest().addItem(is);
-                p.sendMessage("§r[§bDreamBind§r] §a您的绑定物品由于某种原因归还至末影箱！");
+                p.sendMessage("§f[§bDreamBind§f] §a您的绑定物品由于某种原因归还至末影箱！");
             }
         }else {
             p.getInventory().addItem(is);
-            p.sendMessage("§r[§bDreamBind§r] §a您的绑定物品由于某种原因归还至背包！");
+            p.sendMessage("§f[§bDreamBind§f] §a您的绑定物品由于某种原因归还至背包！");
         }
     }
 
@@ -1171,7 +1238,7 @@ public final class DreamBind extends JavaPlugin {
                     for (String w : config.getStringList("onBindName")){
                         if (s.contains(w)){
                             if (s.substring(0,w.length()).equals(w)){
-                                if (s.replace(w,"").equals(p.getName())){
+                                if (s.replace(w,"").equals(p.getName()) | s.replace(w,"").equals(p.getUniqueId().toString())){
                                     b = true;
                                 }
                             }
@@ -1221,10 +1288,11 @@ public final class DreamBind extends JavaPlugin {
                 ArrayList<String> il = new ArrayList<>();
                 if (is.hasItemMeta()){
                     if (is.getItemMeta().hasLore()){
-                        il = (ArrayList<String>) is.getItemMeta().getLore();
+                        for (String s : Objects.requireNonNull(is.getItemMeta().getLore())){
+                            il.add(s);
+                        }
                     }
                 }
-                assert il != null;
                 il.add(config.getStringList("onKeepLore").get(0));
                 b = true;
                 ItemMeta im = is.getItemMeta();
@@ -1242,10 +1310,11 @@ public final class DreamBind extends JavaPlugin {
                 ArrayList<String> il = new ArrayList<>();
                 if (is.hasItemMeta()){
                     if (is.getItemMeta().hasLore()){
-                        il = (ArrayList<String>) is.getItemMeta().getLore();
+                        for (String s : Objects.requireNonNull(is.getItemMeta().getLore())){
+                            il.add(s);
+                        }
                     }
                 }
-                assert il != null;
                 il.add(config.getStringList("onBindLore").get(0));
                 il.add(p.getName());
                 b = true;
@@ -1265,10 +1334,11 @@ public final class DreamBind extends JavaPlugin {
                 ArrayList<String> il = new ArrayList<>();
                 if (itemStack.hasItemMeta()){
                     if (itemStack.getItemMeta().hasLore()){
-                        il = (ArrayList<String>) itemStack.getItemMeta().getLore();
+                        for (String s : Objects.requireNonNull(itemStack.getItemMeta().getLore())){
+                            il.add(s);
+                        }
                     }
                 }
-                assert il != null;
                 il.add(config.getStringList("onBindLore").get(0));
                 il.add(p.getName());
                 b = true;
@@ -1300,10 +1370,11 @@ public final class DreamBind extends JavaPlugin {
                 ArrayList<String> il = new ArrayList<>();
                 if (is.hasItemMeta()){
                     if (is.getItemMeta().hasLore()){
-                        il = (ArrayList<String>) is.getItemMeta().getLore();
+                        for (String s : Objects.requireNonNull(is.getItemMeta().getLore())){
+                            il.add(s);
+                        }
                     }
                 }
-                assert il != null;
                 delBind(il);
                 il.add(config.getStringList("onBindLore").get(0));
                 il.add(p.getName());
@@ -1321,10 +1392,11 @@ public final class DreamBind extends JavaPlugin {
         ArrayList<String> il = new ArrayList<>();
         if (itemStack.hasItemMeta()){
             if (itemStack.getItemMeta().hasLore()){
-                il = (ArrayList<String>) itemStack.getItemMeta().getLore();
+                for (String z : Objects.requireNonNull(itemStack.getItemMeta().getLore())){
+                    il.add(z);
+                }
             }
         }
-        assert il != null;
         il.add(config.getStringList(s).get(0));
         ItemMeta im = itemStack.getItemMeta();
         im.setLore(il);
@@ -1466,6 +1538,10 @@ public final class DreamBind extends JavaPlugin {
             for (OfflinePlayer p : Bukkit.getOfflinePlayers()){
                 if (Objects.equals(p.getName(), s)){
                     b = true;
+                    break;
+                }else if (p.getUniqueId().toString().equals(s)){
+                    b = true;
+                    break;
                 }
             }
         }else {
@@ -1584,7 +1660,7 @@ public final class DreamBind extends JavaPlugin {
         Inventory inv = Bukkit.createInventory(p,bindgui.getInt("onInfo.size") * 9, Objects.requireNonNull(bindgui.getString("onInfo.name")));
 
         if (bindgui.getString("onInfo.music") != null){
-            p.playSound(p.getLocation(),Sound.valueOf(Objects.requireNonNull(bindgui.getString("onInfo.music")).toUpperCase()),50,50);
+            try { p.playSound(p.getLocation(),Sound.valueOf(Objects.requireNonNull(bindgui.getString("onInfo.music")).toUpperCase()),50,50); }catch (Error ignored){ }
         }
         for (String s : Objects.requireNonNull(bindgui.getConfigurationSection("onMenu")).getKeys(false)){
             ItemStack is = new ItemStack(Material.valueOf(bindgui.getString("onMenu." + s + ".type")));
@@ -1650,10 +1726,10 @@ public final class DreamBind extends JavaPlugin {
                         if (b){
                             if (Objects.requireNonNull(bindgui.getString("onMenu." + s + ".bind")).toUpperCase().equals("TRUE")){
                                 if (isBind(p.getItemInHand())){
-                                    p.sendMessage("§r[§bDreamBind§r] §c你手上的物品已经被绑定过了!");
+                                    p.sendMessage("§f[§bDreamBind§f] §c你手上的物品已经被绑定过了!");
                                 }else {
                                     setBind(p);
-                                    p.sendMessage("§r[§bDreamBind§r] §a手上物品绑定成功!");
+                                    p.sendMessage("§f[§bDreamBind§f] §a手上物品绑定成功!");
                                     for (String v : Objects.requireNonNull(bindgui.getConfigurationSection("onMenu." + s + ".money")).getKeys(false)){
                                         DreamBind.getPlugin(DreamBind.class).takeMoney(v,p,bindgui.getDouble("onMenu." + s + ".money." + v));
                                     }
@@ -1661,24 +1737,24 @@ public final class DreamBind extends JavaPlugin {
                             }else {
                                 if (isBind(p.getItemInHand())){
                                     unBind(p);
-                                    p.sendMessage("§r[§bDreamBind§r] §a手上物品解绑成功!");
+                                    p.sendMessage("§f[§bDreamBind§f] §a手上物品解绑成功!");
                                     for (String v : Objects.requireNonNull(bindgui.getConfigurationSection("onMenu." + s + ".money")).getKeys(false)){
                                         DreamBind.getPlugin(DreamBind.class).takeMoney(v,p,bindgui.getDouble("onMenu." + s + ".money." + v));
                                     }
                                 }else {
-                                    p.sendMessage("§r[§bDreamBind§r] §c你手上的物品还没有绑定过!");
+                                    p.sendMessage("§f[§bDreamBind§f] §c你手上的物品还没有绑定过!");
                                 }
                             }
                         }else {
-                            p.sendMessage("§r[§bDreamBind§r] §c你的钱不足以进行该操作！");
+                            p.sendMessage("§f[§bDreamBind§f] §c你的钱不足以进行该操作！");
                         }
                     }else {
                         if (Objects.requireNonNull(bindgui.getString("onMenu." + s + ".bind")).toUpperCase().equals("TRUE")){
                             if (isBind(p.getItemInHand())){
-                                p.sendMessage("§r[§bDreamBind§r] §c你手上的物品已经被绑定过了!");
+                                p.sendMessage("§f[§bDreamBind§f] §c你手上的物品已经被绑定过了!");
                             }else {
                                 setBind(p);
-                                p.sendMessage("§r[§bDreamBind§r] §a手上物品绑定成功!");
+                                p.sendMessage("§f[§bDreamBind§f] §a手上物品绑定成功!");
                                 for (String v : Objects.requireNonNull(bindgui.getConfigurationSection("onMenu." + s + ".money")).getKeys(false)){
                                     DreamBind.getPlugin(DreamBind.class).takeMoney(v,p,bindgui.getDouble("onMenu." + s + ".money." + v));
                                 }
@@ -1686,12 +1762,12 @@ public final class DreamBind extends JavaPlugin {
                         }else {
                             if (isBind(p.getItemInHand())){
                                 unBind(p);
-                                p.sendMessage("§r[§bDreamBind§r] §a手上物品解绑成功!");
+                                p.sendMessage("§f[§bDreamBind§f] §a手上物品解绑成功!");
                                 for (String v : Objects.requireNonNull(bindgui.getConfigurationSection("onMenu." + s + ".money")).getKeys(false)){
                                     DreamBind.getPlugin(DreamBind.class).takeMoney(v,p,bindgui.getDouble("onMenu." + s + ".money." + v));
                                 }
                             }else {
-                                p.sendMessage("§r[§bDreamBind§r] §c你手上的物品还没有绑定过!");
+                                p.sendMessage("§f[§bDreamBind§f] §c你手上的物品还没有绑定过!");
                             }
                         }
                     }

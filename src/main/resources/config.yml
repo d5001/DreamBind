@@ -2,7 +2,15 @@
 #作者QQ: 1098579051
 
 #绑定指令权限节点
-onBindCommand: 'DreamBind.use'
+onBindCommand:
+  #绑定权限
+  bind: 'DreamBind.Bind'
+  #解绑权限
+  unbind: 'DreamBind.unBind'
+  #绑定全部权限
+  bindall: 'DreamBind.bindall'
+  #解除背包所有绑定
+  unbindall: 'DreamBind.unbindall'
 #绑定的Lore识别 第一行为主要绑定信息
 onBindLore:
   - §6梦绑定
@@ -18,6 +26,13 @@ onBindEquip:
 #使用绑定Lore识别
 onBindUse:
   - §4使用后绑定
+#使用绑定附加信息 是否只检测玩家背包
+onBindUseMore: false
+
+#一些事件控制
+Event:
+  #物品掉落/生成绑定检测自动进入背包 (与部分插件冲突)(关闭这个建议开启最下方的自动检测)
+  onSpawn: true
 
 #绑定物品死亡不掉落
 onDeath: true

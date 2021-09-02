@@ -7,9 +7,7 @@ vault:
   type: vault
 #points的货币获取
 points:
-  type: custom
-  get: Points.UUID
-  folder: 'PlayerPoints/storage.yml'
+  type: points
 #其他货币 以credit插件举例
 credit:
   type: custom
@@ -17,8 +15,8 @@ credit:
   get: name
   #必须要注意大小写
   folder: 'Credit/credit.yml'
-#其他货币 该插件检测UUID
+#其他货币 该插件检测 money.UUID
 money:
   type: custom
-  get: UUID
+  get: money.UUID
   folder: 'Money/money.yml'

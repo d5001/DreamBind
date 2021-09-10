@@ -1,10 +1,35 @@
 name: DreamBind
 version: ${project.version}
 main: me.mcdcs.dreambind.DreamBind
+author: 5001 -> 石头
 api-version: 1.16
 softdepend:
-  - Vaulit
+  - Vault
   - PlayerPoints
 commands:
   bind:
-    aliases: [bindreload,bindbag,unbind,bindstone,bindtype,bindonpickup,bindonuse,bindonequip,bindall,unbindall]
+    description: '绑定命令'
+  unbind:
+    description: '解绑命令'
+  bindreload:
+    description: '重载命令'
+  bindbag:
+    description: '绑定箱命令'
+  bindstone:
+    description: '绑定石命令'
+  bindtype:
+    description: '材质获取命令'
+  bindonpickup:
+    description: '拾取后绑定命令'
+  bindonuse:
+    description: '使用后绑定命令'
+  bindonequip:
+    description: '装备后绑定命令'
+  bindonget:
+    description: '获取后绑定命令'
+  bindondeath:
+    description: '死亡不掉落绑定命令'
+  bindall:
+    description: '绑定整个背包命令'
+  unbindall:
+    description: '解绑整个背包命令'

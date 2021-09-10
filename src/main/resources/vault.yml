@@ -5,8 +5,9 @@
 vault:
   #货币类型
   type: vault
-#points的货币获取
+#playerpoints点券
 points:
+  #货币类型
   type: points
 #其他货币 以credit插件举例
 credit:

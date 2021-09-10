@@ -1,5 +1,6 @@
 package me.mcdcs.dreambind;
 
+import me.mcdcs.dreambind.Cmd.*;
 import net.milkbowl.vault.economy.Economy;
 import org.black_ixx.playerpoints.PlayerPoints;
 import org.bukkit.*;
@@ -33,7 +34,9 @@ public final class DreamBind extends JavaPlugin {
     public static ArrayList<Player> OpenList = new ArrayList<>();
     public static int onTime = 0;
     public static Economy econ = null;
+    public static PlayerPoints playerPoints = null;
     public static int Version;
+    public static ArrayList<String> sound = new ArrayList<>();
 
     @Override
     public void onEnable() {
@@ -90,13 +93,29 @@ public final class DreamBind extends JavaPlugin {
         BukkitTask task = new me.mcdcs.dreambind.Runnable().runTaskTimer(this,0,12000);
         BukkitTask onInventory = new me.mcdcs.dreambind.onInventory().runTaskTimerAsynchronously(this,0,10);
 
-        Objects.requireNonNull(getCommand("bind")).setExecutor(new Command());
+        Objects.requireNonNull(getCommand("bind")).setExecutor(new Bind());
+        Objects.requireNonNull(getCommand("unbind")).setExecutor(new unBind());
+        Objects.requireNonNull(getCommand("bindreload")).setExecutor(new bindReload());
+        Objects.requireNonNull(getCommand("bindbag")).setExecutor(new bindBag());
+        Objects.requireNonNull(getCommand("bindall")).setExecutor(new bindAll());
+        Objects.requireNonNull(getCommand("bindonequip")).setExecutor(new bindOnEquip());
+        Objects.requireNonNull(getCommand("bindonpickup")).setExecutor(new bindOnPick());
+        Objects.requireNonNull(getCommand("bindonget")).setExecutor(new bindOnGet());
+        Objects.requireNonNull(getCommand("bindtype")).setExecutor(new bindType());
+        Objects.requireNonNull(getCommand("bindonuse")).setExecutor(new bindOnUse());
+        Objects.requireNonNull(getCommand("bindstone")).setExecutor(new bindStone());
+        Objects.requireNonNull(getCommand("unbindall")).setExecutor(new unBindAll());
+        Objects.requireNonNull(getCommand("bindondeath")).setExecutor(new bindOnDeath());
 
-        if (!setupEconomy() ) {
+        if (!setupEconomy()) {
             System.out.println("[DreamBind]未检测到Vault插件,Vault货币失效!");
         }
-        if (getServer().getPluginManager().getPlugin("PlayerPoints") == null) {
-            System.out.println("[DreamBind]未检测到PlayerPoints插件,Points货币失效!");
+        if (!loadPlayerPoints()){
+            System.out.println("[DreamBind]未检测到PlayerPoints插件,PlayerPoints货币失效!");
+        }
+
+        for (Sound s : Sound.values()){
+            sound.add(s.name());
         }
 
     }
@@ -162,341 +181,6 @@ public final class DreamBind extends JavaPlugin {
             p.getInventory().addItem(is);
             p.sendMessage("§f[§bDreamBind§f] §a您的绑定物品由于某种原因归还至背包！");
         }
-    }
-
-    public static boolean isKeep(ItemStack is){
-        boolean b = false;
-        if (is.getType() != Material.AIR){
-            if (is.hasItemMeta()){
-                if (is.getItemMeta().hasLore()){
-                    for (String s : Objects.requireNonNull(is.getItemMeta().getLore())){
-                        if (config.getStringList("onKeepLore").contains(s)){
-                            b = true;
-                        }
-                    }
-                }
-            }
-        }
-        return b;
-    }
-
-    public static boolean isBindUse(ItemStack is){
-        boolean b = false;
-        if (is.getType() != Material.AIR){
-            if (is.hasItemMeta()){
-                if (is.getItemMeta().hasLore()){
-                    for (String s : Objects.requireNonNull(is.getItemMeta().getLore())){
-                        if (config.getStringList("onBindUse").contains(s)){
-                            b = true;
-                        }
-                    }
-                }
-            }
-        }
-        return b;
-    }
-
-    public static boolean isBindEquip(ItemStack is){
-        boolean b = false;
-        if (is.getType() != Material.AIR){
-            if (is.hasItemMeta()){
-                if (is.getItemMeta().hasLore()){
-                    for (String s : Objects.requireNonNull(is.getItemMeta().getLore())){
-                        if (config.getStringList("onBindEquip").contains(s)){
-                            b = true;
-                        }
-                    }
-                }
-            }
-        }
-        return b;
-    }
-
-    public static boolean isBindPickup(ItemStack is){
-        boolean b = false;
-        if (is.getType() != Material.AIR){
-            if (is.hasItemMeta()){
-                if (is.getItemMeta().hasLore()){
-                    for (String s : Objects.requireNonNull(is.getItemMeta().getLore())){
-                        if (config.getStringList("onBindPickup").contains(s)){
-                            b = true;
-                        }
-                    }
-                }
-            }
-        }
-        return b;
-    }
-
-    public static boolean isBind(ItemStack is){
-        boolean b = false;
-        if (is.getType() != Material.AIR){
-            if (is.hasItemMeta()){
-                if (is.getItemMeta().hasLore()){
-                    for (String s : Objects.requireNonNull(is.getItemMeta().getLore())){
-                        if (config.getStringList("onBindLore").contains(s)){
-                            b = true;
-                        }
-                        for (String w : config.getStringList("onBindName")){
-                            if (s.contains(w)){
-                                if (s.substring(0,w.length()).equals(w)){
-                                    b = true;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return b;
-    }
-
-    public static boolean isOwner(ItemStack is, Player p){
-        boolean b = false;
-        if (isBind(is)){
-            for (String s : Objects.requireNonNull(is.getItemMeta().getLore())){
-                if (s.equals(p.getName())){
-                    b = true;
-                }else if (s.contains(p.getName())){
-                    for (String w : config.getStringList("onBindName")){
-                        if (s.contains(w)){
-                            if (s.substring(0,w.length()).equals(w)){
-                                if (s.replace(w,"").equals(p.getName()) | s.replace(w,"").equals(p.getUniqueId().toString())){
-                                    b = true;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return b;
-    }
-
-    public static String getOwner(ItemStack is){
-        String s = "wu";
-        if (isBind(is)){
-            int i = 0;
-            ArrayList<String> il = (ArrayList<String>) is.getItemMeta().getLore();
-            assert il != null;
-            for (String wb : config.getStringList("onBindLore")){
-                if (il.indexOf(wb) >= 0){
-                    i = il.indexOf(wb);
-                }
-            }
-            if (i <= il.size() - 2){
-                s = il.get(i + 1);
-            }
-            if (!s.equals("wu")){
-                for (String b : il){
-                    for (String w : config.getStringList("onBindName")){
-                        if (b.contains(w)){
-                            if (b.substring(0,w.length()).equals(w)){
-                                if (hasPlayer(b.replace(w,""))){
-                                    s = b.replace(w,"");
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return s;
-    }
-
-    public static boolean setKeep(ItemStack is,Player p){
-        boolean b = false;
-        if (is.getType() != Material.AIR){
-            if (!isKeep(is)){
-                ArrayList<String> il = new ArrayList<>();
-                if (is.hasItemMeta()){
-                    if (is.getItemMeta().hasLore()){
-                        for (String s : Objects.requireNonNull(is.getItemMeta().getLore())){
-                            il.add(s);
-                        }
-                    }
-                }
-                il.add(config.getStringList("onKeepLore").get(0));
-                b = true;
-                ItemMeta im = is.getItemMeta();
-                im.setLore(il);
-                is.setItemMeta(im);
-            }
-        }
-        return b;
-    }
-
-    public static boolean setBind(ItemStack is,Player p){
-        boolean b = false;
-        if (is.getType() != Material.AIR){
-            if (!isBind(is)){
-                ArrayList<String> il = new ArrayList<>();
-                if (is.hasItemMeta()){
-                    if (is.getItemMeta().hasLore()){
-                        for (String s : Objects.requireNonNull(is.getItemMeta().getLore())){
-                            il.add(s);
-                        }
-                    }
-                }
-                il.add(config.getStringList("onBindLore").get(0));
-                il.add(p.getName());
-                b = true;
-                ItemMeta im = is.getItemMeta();
-                im.setLore(il);
-                is.setItemMeta(im);
-            }
-        }
-        return b;
-    }
-
-    public static boolean setBind(Player p){
-        boolean b = false;
-        ItemStack itemStack = p.getItemInHand();
-        if (itemStack.getType() != Material.AIR){
-            if (!isBind(itemStack)){
-                ArrayList<String> il = new ArrayList<>();
-                if (itemStack.hasItemMeta()){
-                    if (itemStack.getItemMeta().hasLore()){
-                        for (String s : Objects.requireNonNull(itemStack.getItemMeta().getLore())){
-                            il.add(s);
-                        }
-                    }
-                }
-                il.add(config.getStringList("onBindLore").get(0));
-                il.add(p.getName());
-                b = true;
-                ItemMeta im = itemStack.getItemMeta();
-                im.setLore(il);
-                itemStack.setItemMeta(im);
-                p.setItemInHand(itemStack);
-            }
-        }
-        return b;
-    }
-
-    public static void delBind(ArrayList<String> list){
-        for (String s : config.getStringList("onBindPickup")){
-            list.remove(s);
-        }
-        for (String s : config.getStringList("onBindUse")){
-            list.remove(s);
-        }
-        for (String s : config.getStringList("onBindEquip")){
-            list.remove(s);
-        }
-    }
-
-    public static boolean setBind(Player p,ItemStack is){
-        boolean b = false;
-        if (is.getType() != Material.AIR){
-            if (!isBind(is)){
-                ArrayList<String> il = new ArrayList<>();
-                if (is.hasItemMeta()){
-                    if (is.getItemMeta().hasLore()){
-                        for (String s : Objects.requireNonNull(is.getItemMeta().getLore())){
-                            il.add(s);
-                        }
-                    }
-                }
-                delBind(il);
-                il.add(config.getStringList("onBindLore").get(0));
-                il.add(p.getName());
-                b = true;
-                ItemMeta im = is.getItemMeta();
-                im.setLore(il);
-                is.setItemMeta(im);
-            }
-        }
-        return b;
-    }
-
-    public static void setBind(Player p,String s){
-        ItemStack itemStack = p.getItemInHand();
-        ArrayList<String> il = new ArrayList<>();
-        if (itemStack.hasItemMeta()){
-            if (itemStack.getItemMeta().hasLore()){
-                for (String z : Objects.requireNonNull(itemStack.getItemMeta().getLore())){
-                    il.add(z);
-                }
-            }
-        }
-        il.add(config.getStringList(s).get(0));
-        ItemMeta im = itemStack.getItemMeta();
-        im.setLore(il);
-        itemStack.setItemMeta(im);
-        p.setItemInHand(itemStack);
-    }
-
-    public static void unBind(ItemStack itemStack,Player p){
-        if (itemStack.getType() != Material.AIR){
-            if (isBind(itemStack)){
-                ItemMeta im = itemStack.getItemMeta();
-                ArrayList<String> il = new ArrayList<>();
-                if (im.getLore() != null){
-                    if (p.isOp()){
-                        for (String s : im.getLore()){
-                            if (config.getStringList("onBindLore").contains(s)){
-                            }else if (s.equals(getOwner(itemStack))){
-                            }else {
-                                il.add(s);
-                            }
-                        }
-                    }else {
-                        if (isOwner(itemStack,p)){
-                            for (String s : im.getLore()){
-                                if (config.getStringList("onBindLore").contains(s)){
-                                }else if (s.equals(getOwner(itemStack))){
-                                }else {
-                                    il.add(s);
-                                }
-                            }
-                        }
-                    }
-                }
-                im.setLore(il);
-                itemStack.setItemMeta(im);
-            }
-        }
-    }
-
-    public static boolean unBind(Player p){
-        boolean b = false;
-        ItemStack itemStack = p.getItemInHand();
-        if (itemStack.getType() != Material.AIR){
-            if (isBind(itemStack)){
-                ItemMeta im = itemStack.getItemMeta();
-                ArrayList<String> il = new ArrayList<>();
-                if (im.getLore() != null){
-                    if (p.isOp()){
-                        for (String s : im.getLore()){
-                            if (config.getStringList("onBindLore").contains(s)){
-                                b = true;
-                            }else if (s.equals(getOwner(itemStack))){
-                                b = true;
-                            }else {
-                                il.add(s);
-                            }
-                        }
-                    }else {
-                        if (isOwner(itemStack,p)){
-                            for (String s : im.getLore()){
-                                if (config.getStringList("onBindLore").contains(s)){
-                                    b = true;
-                                }else if (s.equals(getOwner(itemStack))){
-                                    b = true;
-                                }else {
-                                    il.add(s);
-                                }
-                            }
-                        }
-                    }
-                }
-                im.setLore(il);
-                itemStack.setItemMeta(im);
-                p.setItemInHand(itemStack);
-            }
-        }
-        return b;
     }
 
     public static String onBag(Player p){
@@ -683,7 +367,13 @@ public final class DreamBind extends JavaPlugin {
         Inventory inv = Bukkit.createInventory(p,bindgui.getInt("onInfo.size") * 9, Objects.requireNonNull(bindgui.getString("onInfo.name")));
 
         if (bindgui.getString("onInfo.music") != null){
-            try { p.playSound(p.getLocation(),Sound.valueOf(Objects.requireNonNull(bindgui.getString("onInfo.music")).toUpperCase()),50,50); }catch (Error ignored){ }
+            if (sound.contains(bindgui.getString("onInfo.music"))){
+                p.playSound(p.getLocation(),Sound.valueOf(Objects.requireNonNull(bindgui.getString("onInfo.music")).toUpperCase()),50,50);
+            }else {
+                System.out.println("[DreamBind] 警告！bind.yml内的music配置错误！");
+                System.out.println("[DreamBind] 警告！绑定GUI的声音播放失败");
+                System.out.println("[DreamBind] 警告！请自行查阅Wiki网站获取音效！");
+            }
         }
         for (String s : Objects.requireNonNull(bindgui.getConfigurationSection("onMenu")).getKeys(false)){
             ItemStack is = new ItemStack(Material.valueOf(bindgui.getString("onMenu." + s + ".type")));
@@ -714,6 +404,14 @@ public final class DreamBind extends JavaPlugin {
             i1 = i2;
         }
         return (int) Math.floor(Math.random() * (i1 - i + 1) + i);
+    }
+
+    public boolean loadPlayerPoints(){
+        if (getServer().getPluginManager().getPlugin("PlayerPoints") != null) {
+            playerPoints = (PlayerPoints)getServer().getPluginManager().getPlugin("PlayerPoints");
+            return playerPoints != null;
+        }
+        return false;
     }
 
     public boolean setupEconomy() {
@@ -747,19 +445,20 @@ public final class DreamBind extends JavaPlugin {
                             }
                         }
                         if (b){
+                            DItem dItem = new DItem(p.getItemInHand());
                             if (Objects.requireNonNull(bindgui.getString("onMenu." + s + ".bind")).toUpperCase().equals("TRUE")){
-                                if (isBind(p.getItemInHand())){
+                                if (dItem.isBind()){
                                     p.sendMessage("§f[§bDreamBind§f] §c你手上的物品已经被绑定过了!");
                                 }else {
-                                    setBind(p);
+                                    p.setItemInHand(dItem.setBind(p));
                                     p.sendMessage("§f[§bDreamBind§f] §a手上物品绑定成功!");
                                     for (String v : Objects.requireNonNull(bindgui.getConfigurationSection("onMenu." + s + ".money")).getKeys(false)){
                                         DreamBind.getPlugin(DreamBind.class).takeMoney(v,p,bindgui.getDouble("onMenu." + s + ".money." + v));
                                     }
                                 }
                             }else {
-                                if (isBind(p.getItemInHand())){
-                                    unBind(p);
+                                if (dItem.isBind()){
+                                    p.setItemInHand(dItem.unBind());
                                     p.sendMessage("§f[§bDreamBind§f] §a手上物品解绑成功!");
                                     for (String v : Objects.requireNonNull(bindgui.getConfigurationSection("onMenu." + s + ".money")).getKeys(false)){
                                         DreamBind.getPlugin(DreamBind.class).takeMoney(v,p,bindgui.getDouble("onMenu." + s + ".money." + v));
@@ -772,19 +471,20 @@ public final class DreamBind extends JavaPlugin {
                             p.sendMessage("§f[§bDreamBind§f] §c你的钱不足以进行该操作！");
                         }
                     }else {
+                        DItem dItem = new DItem(p.getItemInHand());
                         if (Objects.requireNonNull(bindgui.getString("onMenu." + s + ".bind")).toUpperCase().equals("TRUE")){
-                            if (isBind(p.getItemInHand())){
+                            if (dItem.isBind()){
                                 p.sendMessage("§f[§bDreamBind§f] §c你手上的物品已经被绑定过了!");
                             }else {
-                                setBind(p);
+                                p.setItemInHand(dItem.setBind(p));
                                 p.sendMessage("§f[§bDreamBind§f] §a手上物品绑定成功!");
                                 for (String v : Objects.requireNonNull(bindgui.getConfigurationSection("onMenu." + s + ".money")).getKeys(false)){
                                     DreamBind.getPlugin(DreamBind.class).takeMoney(v,p,bindgui.getDouble("onMenu." + s + ".money." + v));
                                 }
                             }
                         }else {
-                            if (isBind(p.getItemInHand())){
-                                unBind(p);
+                            if (dItem.isBind()){
+                                p.setItemInHand(dItem.unBind());
                                 p.sendMessage("§f[§bDreamBind§f] §a手上物品解绑成功!");
                                 for (String v : Objects.requireNonNull(bindgui.getConfigurationSection("onMenu." + s + ".money")).getKeys(false)){
                                     DreamBind.getPlugin(DreamBind.class).takeMoney(v,p,bindgui.getDouble("onMenu." + s + ".money." + v));
@@ -808,8 +508,8 @@ public final class DreamBind extends JavaPlugin {
                 }
             }
         }else if (Objects.requireNonNull(vault.getString(s + ".type")).equalsIgnoreCase("points")){
-            if (getServer().getPluginManager().getPlugin("PlayerPoints") == null) {
-                i = PlayerPoints.getPlugin(PlayerPoints.class).getAPI().look(p.getUniqueId());
+            if (getServer().getPluginManager().getPlugin("PlayerPoints") != null) {
+                i = playerPoints.getAPI().look(p.getUniqueId());
             }
         }else {
             i = getCustom(p,vault.getString( s + ".get"),vault.getString(s + ".folder"));
@@ -818,18 +518,18 @@ public final class DreamBind extends JavaPlugin {
     }
 
     public void takeMoney(String s, Player p, double d){
-        if (Objects.requireNonNull(vault.getString(s + ".type")).toUpperCase().equals("VAULT")){
-            if (getServer().getPluginManager().getPlugin("Vault") != null){
-                if (getServer().getServicesManager().getRegistration(Economy.class) != null){
+        if (Objects.requireNonNull(vault.getString(s + ".type")).toUpperCase().equals("VAULT")) {
+            if (getServer().getPluginManager().getPlugin("Vault") != null) {
+                if (getServer().getServicesManager().getRegistration(Economy.class) != null) {
                     takeVault(p, d);
                 }
             }
         }else if (Objects.requireNonNull(vault.getString(s + ".type")).equalsIgnoreCase("points")){
-            if (getServer().getPluginManager().getPlugin("PlayerPoints") == null) {
-                PlayerPoints.getPlugin(PlayerPoints.class).getAPI().take(p.getUniqueId(), (int) d);
+            if (getServer().getPluginManager().getPlugin("PlayerPoints") != null) {
+                playerPoints.getAPI().take(p.getUniqueId(), (int) d);
             }
         }else {
-            takeCustom(s, p, vault.getString(s + ".get"), vault.getString(s + ".folder"), d);
+            takeCustom(p, vault.getString(s + ".get"), vault.getString(s + ".folder"), d);
         }
     }
 
@@ -852,7 +552,7 @@ public final class DreamBind extends JavaPlugin {
         }
     }
 
-    public void takeCustom(String s, Player p, String l, String f, double d){
+    public void takeCustom(Player p, String l, String f, double d){
         if (getCustom(p,l,f) >= d){
             File file = new File(getDataFolder().getAbsolutePath().replace("DreamBind",f));
             FileConfiguration fc = YamlConfiguration.loadConfiguration(file);

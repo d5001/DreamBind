@@ -33,8 +33,9 @@ public class Event implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onEntity(PlayerInteractEntityEvent e){
         if (config.getBoolean("onEntity.onStart")){
-            if (e.getPlayer().getItemInHand().getType() != Material.AIR){
-                if (config.getStringList("onEntity.onList").contains(e.getPlayer().getItemInHand().getType().toString())){
+            DItem dItem = new DItem(e.getPlayer().getItemInHand());
+            if (dItem.isBind()){
+                if (config.getStringList("onEntity.onList").contains(dItem.getItemStack().getType().toString())){
                     e.setCancelled(true);
                     e.getPlayer().sendMessage("§f[§bDreamBind§f] §c该绑定物品禁止右键实体！");
                 }
@@ -44,11 +45,11 @@ public class Event implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onInvPickup(InventoryPickupItemEvent e){
-        ItemStack itemStack = e.getItem().getItemStack();
-        if (isBind(itemStack)) {
-            if (hasPlayer(getOwner(itemStack))) {
+        DItem dItem = new DItem(e.getItem().getItemStack());
+        if (dItem.isBind()) {
+            if (hasPlayer(dItem.getOwner())) {
                 e.setCancelled(true);
-                addItem(itemStack, getOwner(itemStack));
+                addItem(dItem.getItemStack(),dItem.getOwner());
                 e.getItem().remove();
             }
         }
@@ -56,24 +57,23 @@ public class Event implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onCommand(PlayerCommandPreprocessEvent e){
-        if (e.getPlayer().getItemInHand().getType() != Material.AIR){
-            if (isBind(e.getPlayer().getItemInHand())){
-                if (config.getBoolean("onCommand")){
-                    boolean b = false;
-                    for (String s : config.getStringList("onCmdList")){
-                        if (e.getMessage().length() >= s.length()){
-                            if (e.getMessage().toUpperCase().substring(0,s.length()).equals(s.toUpperCase())){
-                                b = true;
-                            }
+        DItem dItem = new DItem(e.getPlayer().getItemInHand());
+        if (dItem.isBind()){
+            if (config.getBoolean("onCommand")){
+                boolean b = false;
+                for (String s : config.getStringList("onCmdList")){
+                    if (e.getMessage().length() >= s.length()){
+                        if (e.getMessage().toUpperCase().substring(0,s.length()).equals(s.toUpperCase())){
+                            b = true;
                         }
                     }
-                    if (config.getBoolean("onCmdAll")){
-                        b = true;
-                    }
-                    if (b){
-                        e.setCancelled(true);
-                        e.getPlayer().sendMessage("§f[§bDreamBind§f] §c手持绑定物品禁止执行该命令!");
-                    }
+                }
+                if (config.getBoolean("onCmdAll")){
+                    b = true;
+                }
+                if (b){
+                    e.setCancelled(true);
+                    e.getPlayer().sendMessage("§f[§bDreamBind§f] §c手持绑定物品禁止执行该命令!");
                 }
             }
         }
@@ -92,21 +92,17 @@ public class Event implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onHand(PlayerItemHeldEvent e){
-        if (e.getPlayer().getInventory().getItem(e.getNewSlot()) != null){
-            if (Objects.requireNonNull(e.getPlayer().getInventory().getItem(e.getNewSlot())).getType() != Material.AIR){
-                ItemStack itemStack = e.getPlayer().getInventory().getItem(e.getNewSlot());
-                if (config.getBoolean("onAuto")){
-                    if (config.getBoolean("onEvent.onHand")){
-                        assert itemStack != null;
-                        if (!isBind(itemStack)){
-                            if (!config.getBoolean("onType") | config.getStringList("onBindType").contains(itemStack.getType().toString())){
-                                setBind(itemStack,e.getPlayer());
-                                e.getPlayer().getInventory().setItem(e.getNewSlot(),itemStack);
-                            }
-                        }
+        DItem dItem = new DItem(e.getPlayer().getInventory().getItem(e.getNewSlot()));
+        if (config.getBoolean("onAuto")){
+            if (config.getBoolean("onEvent.onHand")){
+                if (!dItem.isBind()){
+                    if (!config.getBoolean("onType") | config.getStringList("onBindType").contains(dItem.getItemStack().getType().toString())){
+                        e.getPlayer().getInventory().setItem(e.getNewSlot(),dItem.setBind(e.getPlayer()));
                     }
                 }
             }
+        }else if (dItem.isBind("onBindGet")){
+            e.getPlayer().getInventory().setItem(e.getNewSlot(),dItem.setBind(e.getPlayer()));
         }
     }
 
@@ -132,26 +128,27 @@ public class Event implements Listener {
             boolean b = false;
             ArrayList<ItemStack> is = new ArrayList<>(e.getDrops());
             for (ItemStack itemStack : is){
-                if (isBind(itemStack)){
+                DItem dItem = new DItem(itemStack);
+                if (dItem.isBind()){
                     if (config.getBoolean("onDeath")){
-                        if (isOwner(itemStack,e.getEntity())){
+                        if (dItem.isOwner(e.getEntity())){
                             addBag(itemStack,e.getEntity());
                             e.getDrops().remove(itemStack);
                             b = true;
                         }else {
-                            if (hasPlayer(getOwner(itemStack))){
-                                addItem(itemStack,getOwner(itemStack));
+                            if (hasPlayer(dItem.getOwner())){
+                                addItem(itemStack,dItem.getOwner());
                                 e.getDrops().remove(itemStack);
                             }
                         }
-                    }else if (isKeep(itemStack)){
+                    }else if (dItem.isBind("onKeepLore")){
                         addBag(itemStack,e.getEntity());
                         e.getDrops().remove(itemStack);
                         b = true;
                     }else {
                         DeathItemList.add(itemStack);
                     }
-                }else if (isKeep(itemStack)){
+                }else if (dItem.isBind("onKeepLore")){
                     addBag(itemStack,e.getEntity());
                     e.getDrops().remove(itemStack);
                     b = true;
@@ -166,9 +163,9 @@ public class Event implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onInteract(PlayerInteractEvent e){
         Player p = e.getPlayer();
-        ItemStack is = p.getItemInHand();
+        DItem dItem = new DItem(p.getItemInHand());
         if (e.hasItem()){
-            if (isBind(Objects.requireNonNull(e.getItem()))){
+            if (new DItem(e.getItem()).isBind()){
                 if (e.getAction() == Action.RIGHT_CLICK_AIR){
                     if (config.getBoolean("onRight.onAir")){
                         e.setCancelled(true);
@@ -191,19 +188,15 @@ public class Event implements Listener {
                 }
             }
         }
-        if (is.getType() != Material.AIR){
-            if (isBindUse(is)){
-                setBind(p,is);
-                p.setItemInHand(is);
-            }
+        if (dItem.isBind("onBindUse")){
+            p.setItemInHand(dItem.setBind(p));
         }
         if (Version > 8){
             if (p.getEquipment() != null){
                 if (p.getEquipment().getItemInOffHand().getType() != Material.AIR){
-                    is = p.getEquipment().getItemInOffHand();
-                    if (isBindUse(is)){
-                        setBind(p,is);
-                        p.getEquipment().setItemInOffHand(is);
+                    dItem = new DItem(p.getEquipment().getItemInOffHand());
+                    if (dItem.isBind("onBindUse")){
+                        p.getEquipment().setItemInOffHand(dItem.setBind(p));
                     }
                 }
             }
@@ -216,9 +209,9 @@ public class Event implements Listener {
         for (Entity entity : loc.getWorld().getEntities()){
             if (entity instanceof Item){
                 Item item = (Item) entity;
-                ItemStack itemStack = item.getItemStack();
-                if (isBind(itemStack)){
-                    addItem(itemStack,e.getPlayer());
+                DItem dItem = new DItem(item.getItemStack());
+                if (dItem.isBind()){
+                    addItem(dItem.getItemStack(),e.getPlayer());
                     entity.remove();
                 }
             }
@@ -227,12 +220,12 @@ public class Event implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPickup(PlayerPickupItemEvent e){ //物品拾取保护
-        ItemStack itemStack = e.getItem().getItemStack();
-        if (isBind(itemStack)){
-            if (!isOwner(itemStack,e.getPlayer())){
-                if (hasPlayer(getOwner(itemStack))){
+        DItem dItem = new DItem(e.getItem().getItemStack());
+        if (dItem.isBind()){
+            if (!dItem.isOwner(e.getPlayer())){
+                if (hasPlayer(dItem.getOwner())){
                     e.setCancelled(true);
-                    addItem(itemStack,getOwner(itemStack));
+                    addItem(dItem.getItemStack(),dItem.getOwner());
                     e.getItem().remove();
                     e.getPlayer().sendMessage("§f[§bDreamBind§f] §a你所拾取的物品已经被绑定,已经将其归还为所有者!");
                 }
@@ -240,18 +233,16 @@ public class Event implements Listener {
         }else {
             if (config.getBoolean("onAuto")){
                 if (config.getBoolean("onEvent.onPickup")){
-                    if (!config.getBoolean("onType") | config.getStringList("onBindType").contains(itemStack.getType().toString())){
-                        setBind(e.getPlayer(),itemStack);
+                    if (!config.getBoolean("onType") | config.getStringList("onBindType").contains(dItem.getItemStack().getType().toString())){
                         e.setCancelled(true);
-                        e.getPlayer().getInventory().addItem(itemStack);
+                        e.getPlayer().getInventory().addItem(dItem.setBind(e.getPlayer()));
                         e.getItem().remove();
                     }
                 }
             }else {
-                if (isBindPickup(itemStack)){
-                    setBind(e.getPlayer(),itemStack);
+                if (dItem.isBind("onBindPickup")){
                     e.setCancelled(true);
-                    e.getPlayer().getInventory().addItem(itemStack);
+                    e.getPlayer().getInventory().addItem(dItem.setBind(e.getPlayer()));
                     e.getItem().remove();
                 }
             }
@@ -261,22 +252,22 @@ public class Event implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onDrop(PlayerDropItemEvent e){ //物品掉落保护
         if (!e.getPlayer().isDead()){
-            ItemStack itemStack = e.getItemDrop().getItemStack();
-            if (isBind(itemStack)){
+            DItem dItem = new DItem(e.getItemDrop().getItemStack());
+            if (dItem.isBind()){
                 if (config.getBoolean("onDrop")) {
-                    if (isOwner(itemStack, e.getPlayer())) {
+                    if (dItem.isOwner(e.getPlayer())) {
                         if (e.getPlayer().getInventory().firstEmpty() == -1) {
                             DropItemList.add(e.getItemDrop());
                             e.getItemDrop().remove();
-                            addItem(itemStack, e.getPlayer());
+                            addItem(dItem.getItemStack(), e.getPlayer());
                         } else {
                             e.setCancelled(true);
                             e.getPlayer().sendMessage("§f[§bDreamBind§f] §a禁止丢弃已经绑定过的物品!");
                         }
                     } else {
-                        if (hasPlayer(getOwner(itemStack))) {
+                        if (hasPlayer(dItem.getOwner())) {
                             DropItemList.add(e.getItemDrop());
-                            addItem(itemStack, getOwner(itemStack));
+                            addItem(dItem.getItemStack(),dItem.getOwner());
                             e.getItemDrop().remove();
                             e.getPlayer().sendMessage("§f[§bDreamBind§f] §a你所点击的物品已经被绑定,已经将其归还为所有者!");
                         }
@@ -284,21 +275,44 @@ public class Event implements Listener {
                 }else {
                     DropItemList.add(e.getItemDrop());
                 }
+            }else if (dItem.isBind("onBindGet")){
+                if (!e.getPlayer().isOp()){
+                    e.getItemDrop().setItemStack(dItem.setBind(e.getPlayer()));
+                    ItemStack[] isl = e.getPlayer().getInventory().getContents();
+                    for (ItemStack itemStack : isl){
+                        dItem = new DItem(itemStack);
+                        if (dItem.isBind("onBindGet")){
+                            dItem.setBind(e.getPlayer());
+                        }
+                    }
+                    e.getPlayer().getInventory().setContents(isl);
+                }
             }
         }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onOpen(InventoryOpenEvent e){
-        if (!e.getPlayer().isOp()){
-            OpenList.add((Player) e.getPlayer());
+        Player p = (Player) e.getPlayer();
+        if (!p.isOp()){
+            OpenList.add(p);
+            ItemStack[] isl = p.getInventory().getContents();
+            for (ItemStack itemStack : isl){
+                DItem dItem = new DItem(itemStack);
+                if (dItem.isBind("onBindGet")){
+                    dItem.setBind(p);
+                }
+            }
+            p.getInventory().setContents(isl);
         }
     }
 
     @EventHandler
     public void onLaunch(ProjectileLaunchEvent e){
-        if (e.getEntity() instanceof ItemStack){
-            if (isBind((ItemStack) e.getEntity())){
+        if (e.getEntity() instanceof Item){
+            Item item = (Item) e.getEntity();
+            DItem dItem = new DItem(item.getItemStack());
+            if (dItem.isBind()){
                 e.setCancelled(true);
             }
         }
@@ -316,11 +330,10 @@ public class Event implements Listener {
         }
         if (config.getStringList("onAccurate").contains(p.getOpenInventory().getTitle())){
             for (ItemStack is : p.getOpenInventory().getTopInventory().getContents()){
-                if (is != null){
-                    if (isBind(is)){
-                        il.add(is);
-                        addItem(is,getOwner(is));
-                    }
+                DItem dItem = new DItem(is);
+                if (dItem.isBind()){
+                    il.add(is);
+                    addItem(is,dItem.getOwner());
                 }
             }
             if (il.size() > 0){
@@ -332,11 +345,10 @@ public class Event implements Listener {
             for (String s : config.getStringList("onBlurred")){
                 if (p.getOpenInventory().getTitle().contains(s)){
                     for (ItemStack is : p.getOpenInventory().getTopInventory().getContents()){
-                        if (is != null){
-                            if (isBind(is)){
-                                il.add(is);
-                                addItem(is,getOwner(is));
-                            }
+                        DItem dItem = new DItem(is);
+                        if (dItem.isBind()){
+                            il.add(is);
+                            addItem(is,dItem.getOwner());
                         }
                     }
                     if (il.size() > 0){
@@ -351,18 +363,18 @@ public class Event implements Listener {
         if (e.getSlot() != -999){
             if (e.getCurrentItem() != null){
                 if (e.getCurrentItem().getType() != Material.AIR){
-                    ItemStack itemStack = e.getCurrentItem();
+                    DItem dItem = new DItem(e.getCurrentItem());
                     if (!p.isOp()){
                         if (config.getBoolean("onInventory")){
                             if (config.getStringList("onAccurate").contains(p.getOpenInventory().getTitle())){
-                                if (isBind(itemStack)){
+                                if (dItem.isBind()){
                                     e.setCancelled(true);
                                     p.sendMessage("§f[§bDreamBind§f] §c绑定物品禁止放入该物品栏内!");
                                 }
                             }else {
                                 for (String s : config.getStringList("onBlurred")){
                                     if (p.getOpenInventory().getTitle().contains(s)){
-                                        if (isBind(itemStack)){
+                                        if (dItem.isBind()){
                                             e.setCancelled(true);
                                             p.sendMessage("§f[§bDreamBind§f] §c绑定物品禁止放入该物品栏内!");
                                         }
@@ -371,14 +383,14 @@ public class Event implements Listener {
                             }
                         }
                     }
-                    if (isBind(itemStack)){
-                        if (!isOwner(itemStack,p)){
+                    if (dItem.isBind()){
+                        if (!dItem.isOwner(p)){
                             if (p.isOp()){
                                 p.sendMessage("§f[§bDreamBind§f] §a你正在不受限制的点击绑定物品!");
                             }else {
                                 if (e.getClickedInventory() == p.getInventory()){
-                                    if (hasPlayer(getOwner(itemStack))){
-                                        addItem(itemStack,getOwner(itemStack));
+                                    if (hasPlayer(dItem.getOwner())){
+                                        addItem(dItem.getItemStack(),dItem.getOwner());
                                         e.setCurrentItem(new ItemStack(Material.AIR));
                                         p.sendMessage("§f[§bDreamBind§f] §a你所点击的物品已经被绑定,已经将其归还为所有者!");
                                     }
@@ -394,8 +406,7 @@ public class Event implements Listener {
                                         if (noStone(cursor)){
                                             if (cursor.getAmount() == 1){
                                                 e.setCursor(new ItemStack(Material.AIR));
-                                                unBind(itemStack,p);
-                                                e.setCurrentItem(itemStack);
+                                                e.setCurrentItem(dItem.unBind());
                                                 e.setCancelled(true);
                                                 p.sendMessage("§f[§bDreamBind§f] §c成功为该物品进行解绑!");
                                             }else {
@@ -407,11 +418,10 @@ public class Event implements Listener {
                             }
                         }
                     }else {
-                        if (isBindUse(itemStack)){
+                        if (dItem.isBind("onBindUse")){
                             if (e.getClickedInventory() == e.getWhoClicked().getInventory() | !config.getBoolean("onBindUseMore")){
                                 if (!p.isOp()){
-                                    setBind(p,itemStack);
-                                    e.setCurrentItem(itemStack);
+                                    e.setCurrentItem(dItem.setBind(p));
                                 }
                             }
                         }
@@ -421,11 +431,10 @@ public class Event implements Listener {
                                     ItemStack cursor = e.getCursor();
                                     if (isStone(cursor)){
                                         if (cursor.getAmount() == 1){
-                                            if (!config.getBoolean("onBindStone.onBind.onType") | config.getStringList("onBindStone.onBind.onBindType").contains(itemStack.getType().toString())){
-                                                if (!isStone(itemStack)){
-                                                    e.setCursor(new ItemStack(Material.AIR));
-                                                    setBind(itemStack,p);
-                                                    e.setCurrentItem(itemStack);
+                                            if (!config.getBoolean("onBindStone.onBind.onType") | config.getStringList("onBindStone.onBind.onBindType").contains(dItem.getItemStack().getType().toString())){
+                                                if (!isStone(dItem.getItemStack())){
+                                                    e.setCursor(new ItemStack(Material.AIR));;
+                                                    e.setCurrentItem(dItem.setBind(p));
                                                     e.setCancelled(true);
                                                     p.sendMessage("§f[§bDreamBind§f] §c成功为该物品进行绑定!");
                                                 }
@@ -440,15 +449,14 @@ public class Event implements Listener {
                             }
                         }
                     }
-                    if (!isKeep(itemStack)){
+                    if (!dItem.isBind("onKeepLore")){
                         if (e.getCursor() != null){
                             if (e.getCursor().getType() != Material.AIR){
                                 ItemStack cursor = e.getCursor();
                                 if (noKeep(cursor)){
                                     if (cursor.getAmount() == 1){
                                         e.setCursor(new ItemStack(Material.AIR));
-                                        setKeep(itemStack,p);
-                                        e.setCurrentItem(itemStack);
+                                        e.setCurrentItem(dItem.setBindAction("onKeepLore"));
                                         e.setCancelled(true);
                                         p.sendMessage("§f[§bDreamBind§f] §c成功为该物品进行死亡不掉落绑定!");
                                     }else {
@@ -466,21 +474,21 @@ public class Event implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onSpawn(ItemSpawnEvent e){
         if (config.getBoolean("Event.onSpawn")){
-            ItemStack itemStack = e.getEntity().getItemStack();
-            if (isBind(itemStack)){
+            DItem dItem = new DItem(e.getEntity().getItemStack());
+            if (dItem.isBind()){
                 if (DropItemList.contains(e.getEntity())) {
                     DropItemList.remove(e.getEntity());
                 }else if (DeathItemList.contains(e.getEntity().getItemStack())){
                     DeathItemList.remove(e.getEntity().getItemStack());
                 }else {
-                    if (hasPlayer(getOwner(itemStack))){
-                        if (Bukkit.getPlayer(getOwner(itemStack)) == null){
-                            addItem(itemStack,getOwner(itemStack));
+                    if (hasPlayer(dItem.getOwner())){
+                        if (Bukkit.getPlayer(dItem.getOwner()) == null){
+                            addItem(dItem.getItemStack(),dItem.getOwner());
                         }else {
-                            if (Objects.requireNonNull(Bukkit.getPlayer(getOwner(itemStack))).isDead()){
-                                addBag(itemStack, Objects.requireNonNull(Bukkit.getPlayer(getOwner(itemStack))));
+                            if (Objects.requireNonNull(Bukkit.getPlayer(dItem.getOwner())).isDead()){
+                                addBag(dItem.getItemStack(), Objects.requireNonNull(Bukkit.getPlayer(dItem.getOwner())));
                             }else {
-                                addItem(itemStack,getOwner(itemStack));
+                                addItem(dItem.getItemStack(),dItem.getOwner());
                             }
                         }
                         e.getEntity().remove();
@@ -493,7 +501,7 @@ public class Event implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onMove(InventoryMoveItemEvent e){ //漏斗类物品栏移动
         if (config.getBoolean("onMove"))
-            if (isBind(e.getItem())){
+            if (new DItem(e.getItem()).isBind()){
                 e.setCancelled(true);
             }
     }
@@ -503,15 +511,15 @@ public class Event implements Listener {
         if (config.getBoolean("onDamage")){
             if (e.getEntity() instanceof Item){
                 Item item = (Item) e.getEntity();
-                ItemStack itemStack = item.getItemStack();
-                if (isBind(itemStack)){
+                DItem dItem = new DItem(item.getItemStack());
+                if (dItem.isBind()){
                     e.setCancelled(true);
-                    if (hasPlayer(getOwner(itemStack))){
-                        if (Bukkit.getPlayer(getOwner(itemStack)) == null){
+                    if (hasPlayer(dItem.getOwner())){
+                        if (Bukkit.getPlayer(dItem.getOwner()) == null){
                             ArrayList<Player> il = new ArrayList<>(Bukkit.getOnlinePlayers());
-                            item.teleport(il.get(random(1,il.size()) - 1).getLocation());
+                            item.teleport(il.get(random(0,il.size()) - 1).getLocation());
                         }else {
-                            item.teleport(Objects.requireNonNull(Bukkit.getPlayer(getOwner(itemStack))).getLocation());
+                            item.teleport(Objects.requireNonNull(Bukkit.getPlayer(dItem.getOwner())).getLocation());
                         }
                     }
                 }
@@ -577,10 +585,9 @@ public class Event implements Listener {
         }
         if (i != null){
             for (ItemStack itemStack : i){
-                if (itemStack != null){
-                    if (isBind(itemStack)){
-                        z = true;
-                    }
+                DItem dItem = new DItem(itemStack);
+                if (dItem.isBind()){
+                    z = true;
                 }
             }
         }
@@ -594,7 +601,12 @@ public class Event implements Listener {
     public void onClose(InventoryCloseEvent e){  //关闭绑定箱界面
         if (e.getView().getTitle().equals("§bDreamBind §r- §d绑定箱")){
             for (ItemStack itemStack : e.getInventory().getContents()){
-                bag.set(e.getPlayer().getName() + "." + onBag((Player) e.getPlayer()),itemStack);
+                DItem dItem = new DItem(itemStack);
+                if (dItem.isBind()){
+                    bag.set(e.getPlayer().getName() + "." + onBag((Player) e.getPlayer()),itemStack);
+                }else {
+                    e.getPlayer().getWorld().dropItemNaturally(e.getPlayer().getLocation(),itemStack);
+                }
             }
             try {
                 bag.save(bagfile);
@@ -604,6 +616,14 @@ public class Event implements Listener {
         }
         if (!e.getPlayer().isOp()){
             OpenList.remove(e.getPlayer());
+            ItemStack[] isl = e.getPlayer().getInventory().getContents();
+            for (ItemStack itemStack : isl){
+                DItem dItem = new DItem(itemStack);
+                if (dItem.isBind("onBindGet")){
+                    dItem.setBind((Player) e.getPlayer());
+                }
+            }
+            e.getPlayer().getInventory().setContents(isl);
         }
     }
 }

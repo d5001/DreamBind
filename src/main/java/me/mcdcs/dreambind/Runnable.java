@@ -1,11 +1,11 @@
 package me.mcdcs.dreambind;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.ArrayList;
 import java.util.Objects;
 
 import static me.mcdcs.dreambind.DreamBind.*;
@@ -15,20 +15,17 @@ public class Runnable extends BukkitRunnable {
     public void run() {
         for (Player p : Bukkit.getOnlinePlayers()){
             if (!p.isOp()){
-                ArrayList<ItemStack> il = new ArrayList<>();
-                for (ItemStack itemStack : p.getInventory().getContents()){
-                    if (itemStack != null){
-                        if (isBind(itemStack)){
-                            if (!isOwner(itemStack,p)){
-                                il.add(itemStack);
-                                addItem(itemStack,getOwner(itemStack));
-                            }
+                ItemStack[] is = p.getInventory().getContents();
+                for (ItemStack itemStack : is){
+                    DItem dItem = new DItem(itemStack);
+                    if (dItem.isBind()){
+                        if (!dItem.isOwner(p)){
+                            itemStack.setType(Material.AIR);
+                            addItem(itemStack,dItem.getOwner());
                         }
                     }
                 }
-                for (ItemStack itemStack : il){
-                    p.getInventory().remove(itemStack);
-                }
+                p.getInventory().setContents(is);
             }
             if (bag.getConfigurationSection(p.getName()) != null){
                 int i = Objects.requireNonNull(bag.getConfigurationSection(p.getName())).getKeys(true).size();

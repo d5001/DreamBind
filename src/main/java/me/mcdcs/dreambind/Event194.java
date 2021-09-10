@@ -3,40 +3,38 @@ package me.mcdcs.dreambind;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
-import org.bukkit.inventory.ItemStack;
-
 import static me.mcdcs.dreambind.DreamBind.*;
 
 public class Event194 implements Listener {
     @EventHandler
     public void onSwap(PlayerSwapHandItemsEvent e){
-        ItemStack itemStack;
+        DItem dItem;
         if (e.getMainHandItem() != null){
-            itemStack = e.getMainHandItem();
+            dItem = new DItem(e.getMainHandItem());
             if (config.getBoolean("onAuto")){
                 if (config.getBoolean("onEvent.onSwap")){
-                    assert itemStack != null;
-                    if (!isBind(itemStack)){
-                        if (!config.getBoolean("onType") | config.getStringList("onBindType").contains(itemStack.getType().toString())){
-                            setBind(itemStack,e.getPlayer());
-                            e.setMainHandItem(itemStack);
+                    if (!dItem.isBind()){
+                        if (!config.getBoolean("onType") | config.getStringList("onBindType").contains(dItem.getItemStack().getType().toString())){
+                            e.setMainHandItem(dItem.setBind(e.getPlayer()));
                         }
                     }
                 }
+            }else if (dItem.isBind("onBindGet")){
+                e.setMainHandItem(dItem.setBind(e.getPlayer()));
             }
         }
         if (e.getOffHandItem() != null){
-            itemStack = e.getOffHandItem();
+            dItem = new DItem(e.getOffHandItem());
             if (config.getBoolean("onAuto")){
                 if (config.getBoolean("onEvent.onSwap")){
-                    assert itemStack != null;
-                    if (!isBind(itemStack)){
-                        if (!config.getBoolean("onType") | config.getStringList("onBindType").contains(itemStack.getType().toString())){
-                            setBind(itemStack,e.getPlayer());
-                            e.setOffHandItem(itemStack);
+                    if (!dItem.isBind()){
+                        if (!config.getBoolean("onType") | config.getStringList("onBindType").contains(dItem.getItemStack().getType().toString())){
+                            e.setOffHandItem(dItem.setBind(e.getPlayer()));
                         }
                     }
                 }
+            }else if (dItem.isBind("onBindGet")){
+                e.setOffHandItem(dItem.setBind(e.getPlayer()));
             }
         }
     }

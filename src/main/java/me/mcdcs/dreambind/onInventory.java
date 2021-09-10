@@ -9,7 +9,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.ArrayList;
 import java.util.Objects;
 
 import static me.mcdcs.dreambind.DreamBind.*;
@@ -23,13 +22,11 @@ public class onInventory extends BukkitRunnable {
                 for (World w : Bukkit.getWorlds()){
                     for (Entity entity : w.getEntities()){
                         if (entity instanceof Item){
-                            ItemStack is = ((Item) entity).getItemStack();
-                            if (is.getType() != Material.AIR){
-                                if (isBind(is)){
-                                    if (hasPlayer(getOwner(is))){
-                                        addItem(is,getOwner(is));
-                                        entity.remove();
-                                    }
+                            DItem dItem = new DItem(((Item) entity).getItemStack());
+                            if (dItem.isBind()){
+                                if (hasPlayer(dItem.getOwner())){
+                                    addItem(dItem.getItemStack(),dItem.getOwner());
+                                    entity.remove();
                                 }
                             }
                         }
@@ -40,58 +37,44 @@ public class onInventory extends BukkitRunnable {
         for (Player p : Bukkit.getOnlinePlayers()){
             ItemStack[] isl = p.getInventory().getArmorContents();
             for (ItemStack itemStack : isl){
-                if (itemStack != null){
-                    if (itemStack.getType() != Material.AIR){
-                        if (isBindEquip(itemStack)){
-                            setBind(p,itemStack);
-                        }
-                    }
+                DItem dItem = new DItem(itemStack);
+                if (dItem.isBind("onBindEquip")){
+                    dItem.setBind(p);
                 }
             }
             p.getInventory().setArmorContents(isl);
             if (Version > 8){
                 if (Objects.requireNonNull(p.getEquipment()).getItemInOffHand().getType() != Material.AIR){
-                    ItemStack itemStack = p.getEquipment().getItemInOffHand();
-                    if (isBindEquip(itemStack)){
-                        setBind(p,itemStack);
-                        p.getEquipment().setItemInOffHand(itemStack);
+                    DItem dItem = new DItem(p.getEquipment().getItemInOffHand());
+                    if (dItem.isBind("onBindEquip")){
+                        p.getEquipment().setItemInOffHand(dItem.setBind(p));
                     }
                 }
             }
         }
         if (config.getBoolean("onInventory")) {
             for (Player p : OpenList) {
-                ArrayList<ItemStack> il = new ArrayList<>();
+                ItemStack[] iss = p.getOpenInventory().getTopInventory().getContents();
                 if (config.getStringList("onAccurate").contains(p.getOpenInventory().getTitle())) {
-                    for (ItemStack is : p.getOpenInventory().getTopInventory().getContents()) {
-                        if (is != null) {
-                            if (isBind(is)) {
-                                il.add(is);
-                                addItem(is, getOwner(is));
-                            }
+                    for (ItemStack is : iss) {
+                        DItem dItem = new DItem(is);
+                        if (dItem.isBind()) {
+                            is.setType(Material.AIR);
+                            addItem(is,dItem.getOwner());
                         }
                     }
-                    if (il.size() > 0) {
-                        for (ItemStack is : il) {
-                            p.getOpenInventory().getTopInventory().remove(is);
-                        }
-                    }
+                    p.getOpenInventory().getTopInventory().setContents(iss);
                 } else {
                     for (String s : config.getStringList("onBlurred")) {
                         if (p.getOpenInventory().getTitle().contains(s)) {
-                            for (ItemStack is : p.getOpenInventory().getTopInventory().getContents()) {
-                                if (is != null) {
-                                    if (isBind(is)) {
-                                        il.add(is);
-                                        addItem(is, getOwner(is));
-                                    }
+                            for (ItemStack is : iss) {
+                                DItem dItem = new DItem(is);
+                                if (dItem.isBind()) {
+                                    is.setType(Material.AIR);
+                                    addItem(is,dItem.getOwner());
                                 }
                             }
-                            if (il.size() > 0) {
-                                for (ItemStack is : il) {
-                                    p.getOpenInventory().getTopInventory().remove(is);
-                                }
-                            }
+                            p.getOpenInventory().getTopInventory().setContents(iss);
                             break;
                         }
                     }

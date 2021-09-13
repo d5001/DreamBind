@@ -1,6 +1,10 @@
 package me.mcdcs.dreambind;
 
+import me.mcdcs.dreambind.Api.DItem;
 import me.mcdcs.dreambind.Cmd.*;
+import me.mcdcs.dreambind.Listener.Event;
+import me.mcdcs.dreambind.Listener.Event1710;
+import me.mcdcs.dreambind.Listener.Event194;
 import net.milkbowl.vault.economy.Economy;
 import org.black_ixx.playerpoints.PlayerPoints;
 import org.bukkit.*;
@@ -90,8 +94,8 @@ public final class DreamBind extends JavaPlugin {
         }
         getServer().getPluginManager().registerEvents(new Event(),this);
 
-        BukkitTask task = new me.mcdcs.dreambind.Runnable().runTaskTimer(this,0,12000);
-        BukkitTask onInventory = new me.mcdcs.dreambind.onInventory().runTaskTimerAsynchronously(this,0,10);
+        BukkitTask task = new me.mcdcs.dreambind.Runnable.Runnable().runTaskTimer(this,0,12000);
+        BukkitTask onInventory = new me.mcdcs.dreambind.Runnable.onInventory().runTaskTimerAsynchronously(this,0,10);
 
         Objects.requireNonNull(getCommand("bind")).setExecutor(new Bind());
         Objects.requireNonNull(getCommand("unbind")).setExecutor(new unBind());

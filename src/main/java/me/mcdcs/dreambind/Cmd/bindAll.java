@@ -1,7 +1,7 @@
 package me.mcdcs.dreambind.Cmd;
 
-import me.mcdcs.dreambind.Config;
-import me.mcdcs.dreambind.DItem;
+import me.mcdcs.dreambind.Api.DItem;
+import me.mcdcs.dreambind.Config.Config;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;

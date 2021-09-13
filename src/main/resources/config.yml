@@ -29,8 +29,10 @@ onBindUse:
 #获取绑定Lore识别
 onBindGet:
   - §4获取后绑定
-#使用绑定附加信息 是否只检测玩家背包
+#使用/获取后绑定附加信息 是否只检测玩家背包
 onBindUseMore: false
+#获取后绑定 是否打开物品栏就进行检测
+onBindGetInventory: true
 
 #一些事件控制
 Event:

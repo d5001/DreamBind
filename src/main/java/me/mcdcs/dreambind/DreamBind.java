@@ -221,13 +221,13 @@ public final class DreamBind extends JavaPlugin {
         }
     }
 
-    public static void openBag(Player p){
-        Inventory inv = Bukkit.createInventory(p,27,"§bDreamBind §r- §d绑定箱");
+    public static void openBag(Player p,String owner){
+        Inventory inv = Bukkit.createInventory(p,27,"§bDreamBind §r- §d绑定箱 " + owner);
 
         int i = 0;
-        for (String s : Objects.requireNonNull(bag.getConfigurationSection(p.getName())).getKeys(true)){
-            inv.addItem(bag.getItemStack(p.getName() + "." + s));
-            bag.set(p.getName() + "." + s,null);
+        for (String s : Objects.requireNonNull(bag.getConfigurationSection(owner)).getKeys(true)){
+            inv.addItem(bag.getItemStack(owner + "." + s));
+            bag.set(owner + "." + s,null);
             i++;
             if (i == 27){
                 break;

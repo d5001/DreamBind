@@ -1,6 +1,7 @@
 package me.mcdcs.dreambind.Listener;
 
 import me.mcdcs.dreambind.Api.DItem;
+import me.mcdcs.dreambind.DreamBind;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -126,37 +127,39 @@ public class Event implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onDeath(PlayerDeathEvent e){ //玩家死亡保护
         if (!e.getKeepInventory()){
-            boolean b = false;
-            ArrayList<ItemStack> is = new ArrayList<>(e.getDrops());
-            for (ItemStack itemStack : is){
-                DItem dItem = new DItem(itemStack);
-                if (dItem.isBind()){
-                    if (config.getBoolean("onDeath")){
-                        if (dItem.isOwner(e.getEntity())){
+            if (e.getDrops().size() != 0){
+                boolean b = false;
+                ArrayList<ItemStack> is = new ArrayList<>(e.getDrops());
+                for (ItemStack itemStack : is){
+                    DItem dItem = new DItem(itemStack);
+                    if (dItem.isBind()){
+                        if (config.getBoolean("onDeath")){
+                            if (dItem.isOwner(e.getEntity())){
+                                addBag(itemStack,e.getEntity());
+                                e.getDrops().remove(itemStack);
+                                b = true;
+                            }else {
+                                if (hasPlayer(dItem.getOwner())){
+                                    addItem(itemStack,dItem.getOwner());
+                                    e.getDrops().remove(itemStack);
+                                }
+                            }
+                        }else if (dItem.isBind("onKeepLore")){
                             addBag(itemStack,e.getEntity());
                             e.getDrops().remove(itemStack);
                             b = true;
                         }else {
-                            if (hasPlayer(dItem.getOwner())){
-                                addItem(itemStack,dItem.getOwner());
-                                e.getDrops().remove(itemStack);
-                            }
+                            DeathItemList.add(itemStack);
                         }
                     }else if (dItem.isBind("onKeepLore")){
                         addBag(itemStack,e.getEntity());
                         e.getDrops().remove(itemStack);
                         b = true;
-                    }else {
-                        DeathItemList.add(itemStack);
                     }
-                }else if (dItem.isBind("onKeepLore")){
-                    addBag(itemStack,e.getEntity());
-                    e.getDrops().remove(itemStack);
-                    b = true;
                 }
-            }
-            if (b){
-                e.getEntity().sendMessage("§f[§bDreamBind§f] §a你绑定的物品由于死亡掉落放置在了绑定箱内!");
+                if (b){
+                    e.getEntity().sendMessage("§f[§bDreamBind§f] §a你绑定的物品由于死亡掉落放置在了绑定箱内!");
+                }
             }
         }
     }
@@ -297,14 +300,16 @@ public class Event implements Listener {
         Player p = (Player) e.getPlayer();
         if (!p.isOp()){
             OpenList.add(p);
-            ItemStack[] isl = p.getInventory().getContents();
-            for (ItemStack itemStack : isl){
-                DItem dItem = new DItem(itemStack);
-                if (dItem.isBind("onBindGet")){
-                    dItem.setBind(p);
+            if (config.getBoolean("onBindGetInventory")){
+                ItemStack[] isl = p.getInventory().getContents();
+                for (ItemStack itemStack : isl){
+                    DItem dItem = new DItem(itemStack);
+                    if (dItem.isBind("onBindGet")){
+                        dItem.setBind(p);
+                    }
                 }
+                p.getInventory().setContents(isl);
             }
-            p.getInventory().setContents(isl);
         }
     }
 
@@ -419,7 +424,7 @@ public class Event implements Listener {
                             }
                         }
                     }else {
-                        if (dItem.isBind("onBindUse")){
+                        if (dItem.isBind("onBindUse") | dItem.isBind("onBindGet")){
                             if (e.getClickedInventory() == e.getWhoClicked().getInventory() | !config.getBoolean("onBindUseMore")){
                                 if (!p.isOp()){
                                     e.setCurrentItem(dItem.setBind(p));
@@ -601,10 +606,11 @@ public class Event implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onClose(InventoryCloseEvent e){  //关闭绑定箱界面
         if (e.getView().getTitle().equals("§bDreamBind §r- §d绑定箱")){
+            String owner = e.getView().getTitle().replace("§bDreamBind §r- §d绑定箱 ","");
             for (ItemStack itemStack : e.getInventory().getContents()){
                 DItem dItem = new DItem(itemStack);
                 if (dItem.isBind()){
-                    bag.set(e.getPlayer().getName() + "." + onBag((Player) e.getPlayer()),itemStack);
+                    bag.set(owner + "." + onBag((Player) e.getPlayer()),itemStack);
                 }else {
                     e.getPlayer().getWorld().dropItemNaturally(e.getPlayer().getLocation(),itemStack);
                 }

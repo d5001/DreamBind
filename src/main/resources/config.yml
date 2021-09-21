@@ -148,6 +148,8 @@ onEvent:
   onHand: true
   #副手切换物品
   onSwap: true
+  #点击物品栏里面的物品 (包括合成)
+  onClick: true
 #如果限制材质请列举所有可以绑定的物品材质 (必须大写)
 onBindType:
   - DIAMOND_SWORD

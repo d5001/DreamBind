@@ -97,9 +97,11 @@ public class Event implements Listener {
         DItem dItem = new DItem(e.getPlayer().getInventory().getItem(e.getNewSlot()));
         if (config.getBoolean("onAuto")){
             if (config.getBoolean("onEvent.onHand")){
-                if (!dItem.isBind()){
-                    if (!config.getBoolean("onType") | config.getStringList("onBindType").contains(dItem.getItemStack().getType().toString())){
-                        e.getPlayer().getInventory().setItem(e.getNewSlot(),dItem.setBind(e.getPlayer()));
+                if (dItem.isItemStack()){
+                    if (!dItem.isBind()){
+                        if (!config.getBoolean("onType") | config.getStringList("onBindType").contains(dItem.getItemStack().getType().toString())){
+                            e.getPlayer().getInventory().setItem(e.getNewSlot(),dItem.setBind(e.getPlayer()));
+                        }
                     }
                 }
             }
@@ -424,6 +426,13 @@ public class Event implements Listener {
                             }
                         }
                     }else {
+                        if (config.getBoolean("onAuto")){
+                            if (config.getBoolean("onEvent.onClick")){
+                                if (!config.getBoolean("onType") | config.getStringList("onBindType").contains(dItem.getItemStack().getType().toString())){
+                                    e.setCurrentItem(dItem.setBind(p));
+                                }
+                            }
+                        }
                         if (dItem.isBind("onBindUse") | dItem.isBind("onBindGet")){
                             if (e.getClickedInventory() == e.getWhoClicked().getInventory() | !config.getBoolean("onBindUseMore")){
                                 if (!p.isOp()){
@@ -605,14 +614,16 @@ public class Event implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onClose(InventoryCloseEvent e){  //关闭绑定箱界面
-        if (e.getView().getTitle().equals("§bDreamBind §r- §d绑定箱")){
+        if (e.getView().getTitle().contains("§bDreamBind §r- §d绑定箱 ")){
             String owner = e.getView().getTitle().replace("§bDreamBind §r- §d绑定箱 ","");
             for (ItemStack itemStack : e.getInventory().getContents()){
                 DItem dItem = new DItem(itemStack);
-                if (dItem.isBind()){
-                    bag.set(owner + "." + onBag((Player) e.getPlayer()),itemStack);
-                }else {
-                    e.getPlayer().getWorld().dropItemNaturally(e.getPlayer().getLocation(),itemStack);
+                if (dItem.isItemStack()){
+                    if (dItem.isBind()){
+                        bag.set(owner + "." + onBag(e.getPlayer().getName()),itemStack);
+                    }else {
+                        e.getPlayer().getWorld().dropItemNaturally(e.getPlayer().getLocation(),itemStack);
+                    }
                 }
             }
             try {

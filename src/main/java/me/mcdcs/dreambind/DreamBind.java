@@ -188,20 +188,7 @@ public final class DreamBind extends JavaPlugin {
     }
 
     public static String onBag(Player p){
-        ArrayList<String> il = new ArrayList<>();
-        il.add("a");
-        il.add("b");
-        il.add("c");
-        il.add("d");
-        String s = il.get(random(0,3)) + il.get(random(0,3)) + il.get(random(0,3)) + il.get(random(0,3)) + il.get(random(0,3))  + il.get(random(0,3)) + il.get(random(0,3)) + il.get(random(0,3)) + il.get(random(0,3)) + il.get(random(0,3));
-        if (bag.getConfigurationSection(p.getName()) == null){
-            return s;
-        }
-        if (Objects.requireNonNull(bag.getConfigurationSection(p.getName())).getKeys(true).contains(s)){
-            return onBag(p);
-        }else {
-            return s;
-        }
+        return onBag(p.getName());
     }
 
     public static String onBag(String s){
@@ -210,6 +197,10 @@ public final class DreamBind extends JavaPlugin {
         il.add("f");
         il.add("g");
         il.add("h");
+        il.add("a");
+        il.add("b");
+        il.add("c");
+        il.add("d");
         String wb = il.get(random(0,3)) + il.get(random(0,3)) + il.get(random(0,3)) + il.get(random(0,3)) + il.get(random(0,3))  + il.get(random(0,3)) + il.get(random(0,3)) + il.get(random(0,3)) + il.get(random(0,3)) + il.get(random(0,3));
         if (bag.getConfigurationSection(s) == null){
             return wb;

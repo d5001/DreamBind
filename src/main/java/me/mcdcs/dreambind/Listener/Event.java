@@ -1,5 +1,6 @@
 package me.mcdcs.dreambind.Listener;
 
+import me.mcdcs.dreambind.Api.BindEvent;
 import me.mcdcs.dreambind.Api.DItem;
 import me.mcdcs.dreambind.DreamBind;
 import org.bukkit.Bukkit;
@@ -21,6 +22,7 @@ import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.IOException;
@@ -547,56 +549,8 @@ public class Event implements Listener {
         boolean z = false;
         BlockState b = e.getBlock().getState();
         Inventory i = null;
-        int v = Version;
-        if (b instanceof Chest){
-            Chest chest = (Chest) b;
-            i = chest.getInventory();
-        }
-        if (i == null){
-            if (b instanceof Hopper){
-                Hopper hopper = (Hopper) b;
-                i = hopper.getInventory();
-            }
-        }
-        if (i == null){
-            if (b instanceof Furnace){
-                Furnace furnace = (Furnace) b;
-                i = furnace.getInventory();
-            }
-        }
-        if (i == null){
-            if (b instanceof Dispenser){
-                Dispenser dispenser = (Dispenser) b;
-                i = dispenser.getInventory();
-            }
-        }
-        if (i == null){
-            if (b instanceof Dropper){
-                Dropper dropper = (Dropper) b;
-                i = dropper.getInventory();
-            }
-        }
-        if (i == null){
-            if (b instanceof BrewingStand){
-                BrewingStand brewingStand = (BrewingStand) b;
-                i = brewingStand.getInventory();
-            }
-        }
-        if (i == null){
-            if (v >= 14){
-                if (b instanceof Barrel){
-                    Barrel barrel = (Barrel) b;
-                    i = barrel.getInventory();
-                }
-            }
-        }
-        if (i == null){
-            if (v >= 11){
-                if (b instanceof ShulkerBox){
-                    ShulkerBox shulkerBox = (ShulkerBox) b;
-                    i = shulkerBox.getInventory();
-                }
-            }
+        if (b instanceof InventoryHolder){
+            i = ((InventoryHolder) b).getInventory();
         }
         if (i != null){
             for (ItemStack itemStack : i){

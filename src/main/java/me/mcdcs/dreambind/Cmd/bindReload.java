@@ -36,6 +36,13 @@ public class bindReload implements CommandExecutor {
                 System.out.println("[DreamBind]正在加载bind.yml文件");
             }
             bindgui = YamlConfiguration.loadConfiguration(bindfile);
+            color = config.getString("bindColor");
+            if (color != null){
+                color = color.replace("&","§");
+                if (!tihuan(color).equals("")){
+                    color = "";
+                }
+            }
             sender.sendMessage("§f[§bDreamBind§f] §a插件已经成功重载完毕!");
         } else {
             sender.sendMessage("§f[§bDreamBind§f] §c只有OP才能使用该命令!");

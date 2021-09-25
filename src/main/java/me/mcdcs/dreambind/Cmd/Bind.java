@@ -13,11 +13,15 @@ public class Bind implements CommandExecutor {
         if (sender instanceof Player){
             if (sender.isOp() | sender.hasPermission(Config.getString("onBindCommand.bind", "DreamBind.bind"))) {
                 DItem dItem = new DItem(((Player) sender).getItemInHand());
-                if (!dItem.isBind()) {
-                    ((Player) sender).setItemInHand(dItem.setBind((Player) sender));
-                    sender.sendMessage("§f[§bDreamBind§f] §a手上物品成功被绑定!");
-                } else {
-                    sender.sendMessage("§f[§bDreamBind§f] §a手上物品无法被绑定!");
+                if (dItem.isItemStack()){
+                    if (!dItem.isBind()) {
+                        ((Player) sender).setItemInHand(dItem.setBind((Player) sender));
+                        sender.sendMessage("§f[§bDreamBind§f] §a手上物品成功被绑定!");
+                    } else {
+                        sender.sendMessage("§f[§bDreamBind§f] §a手上物品无法被绑定!");
+                    }
+                }else {
+                    sender.sendMessage("§f[§bDreamBind§f] §a请手持物品进行绑定!");
                 }
             } else {
                 sender.sendMessage("§f[§bDreamBind§f] §c你没有权限使用该命令!");

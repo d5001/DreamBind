@@ -1,6 +1,7 @@
 package me.mcdcs.dreambind.Api;
 
 import me.mcdcs.dreambind.Config.Config;
+import me.mcdcs.dreambind.DreamBind;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -27,10 +28,10 @@ public class DItem {
 
     public String getOwner(){
         if (contains(Config.getStringList("onBindLore"))){
-            return getLore().get(containsWz(Config.getStringList("onBindLore")) + 1);
+            return DreamBind.tihuan(getLore().get(containsWz(Config.getStringList("onBindLore")) + 1));
         }
         if (containsBindName(Config.getStringList("onBindName"))){
-            return containsBindNameMz(Config.getStringList("onBindName"));
+            return DreamBind.tihuan(containsBindNameMz(Config.getStringList("onBindName")));
         }
         return null;
     }
@@ -63,7 +64,7 @@ public class DItem {
             remove(il,Config.getStringList("onBindEquip"));
             remove(il,Config.getStringList("onBindPickup"));
             remove(il,Config.getStringList("onBindGet"));
-            il.add(name);
+            il.add(DreamBind.color + name);
             ItemMeta im = itemStack.getItemMeta();
             im.setLore(il);
             itemStack.setItemMeta(im);

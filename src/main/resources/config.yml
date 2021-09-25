@@ -33,6 +33,8 @@ onBindGet:
 onBindUseMore: false
 #获取后绑定 是否打开物品栏就进行检测
 onBindGetInventory: true
+#绑定的前缀颜色
+bindColor: '§6§l'
 
 #一些事件控制
 Event:

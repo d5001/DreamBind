@@ -41,6 +41,7 @@ public final class DreamBind extends JavaPlugin {
     public static PlayerPoints playerPoints = null;
     public static int Version;
     public static ArrayList<String> sound = new ArrayList<>();
+    public static String color = "";
 
     @Override
     public void onEnable() {
@@ -85,6 +86,13 @@ public final class DreamBind extends JavaPlugin {
 
         bag = YamlConfiguration.loadConfiguration(bagfile);
         config = getConfig();
+        color = config.getString("bindColor");
+        if (color != null){
+            color = color.replace("&","§");
+            if (!tihuan(color).equals("")){
+                color = "";
+            }
+        }
 
         if (Version >= 8){
             getServer().getPluginManager().registerEvents(new Event1710(),this);
@@ -176,15 +184,45 @@ public final class DreamBind extends JavaPlugin {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                p.sendMessage("§f[§bDreamBind§f] §a您的绑定物品由于某种原因归还至绑定箱！");
             }else {
                 p.getEnderChest().addItem(is);
-                p.sendMessage("§f[§bDreamBind§f] §a您的绑定物品由于某种原因归还至末影箱！");
             }
         }else {
             p.getInventory().addItem(is);
             p.sendMessage("§f[§bDreamBind§f] §a您的绑定物品由于某种原因归还至背包！");
         }
+    }
+
+    public static String tihuan(String s){
+        for (String z : colorlist()){
+            s = s.replace(z,"");
+        }
+        return s;
+    }
+
+    public static ArrayList<String> colorlist(){
+        ArrayList<String> il = new ArrayList<>();
+        il.add("§0");
+        il.add("§1");
+        il.add("§2");
+        il.add("§3");
+        il.add("§4");
+        il.add("§5");
+        il.add("§6");
+        il.add("§7");
+        il.add("§8");
+        il.add("§9");
+        il.add("§a");
+        il.add("§b");
+        il.add("§c");
+        il.add("§d");
+        il.add("§e");
+        il.add("§f");
+        il.add("§r");
+        il.add("§l");
+        il.add("§n");
+        il.add("§m");
+        return il;
     }
 
     public static String onBag(Player p){

@@ -21,8 +21,10 @@ public class Runnable extends BukkitRunnable {
                     DItem dItem = new DItem(itemStack);
                     if (dItem.isBind()){
                         if (!dItem.isOwner(p)){
-                            itemStack.setType(Material.AIR);
-                            addItem(itemStack,dItem.getOwner());
+                            if (dItem.getOwner() != null){
+                                itemStack.setType(Material.AIR);
+                                addItem(itemStack,dItem.getOwner());
+                            }
                         }
                     }
                 }

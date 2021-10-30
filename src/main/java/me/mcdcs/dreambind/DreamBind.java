@@ -91,6 +91,9 @@ public final class DreamBind extends JavaPlugin {
             color = color.replace("&","§");
             if (!tihuan(color).equals("")){
                 color = "";
+                System.out.println("[DreamBind]颜色符号加载错误！");
+            }else {
+                System.out.println("[DreamBind]颜色符号成功加载完毕！");
             }
         }
 
@@ -103,7 +106,7 @@ public final class DreamBind extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new Event(),this);
 
         BukkitTask task = new me.mcdcs.dreambind.Runnable.Runnable().runTaskTimer(this,0,12000);
-        BukkitTask onInventory = new me.mcdcs.dreambind.Runnable.onInventory().runTaskTimerAsynchronously(this,0,10);
+        BukkitTask onInventory = new me.mcdcs.dreambind.Runnable.onInventory().runTaskTimer(this,0,10);
 
         Objects.requireNonNull(getCommand("bind")).setExecutor(new Bind());
         Objects.requireNonNull(getCommand("unbind")).setExecutor(new unBind());
@@ -222,6 +225,8 @@ public final class DreamBind extends JavaPlugin {
         il.add("§l");
         il.add("§n");
         il.add("§m");
+        il.add(" ");
+        il.addAll(config.getStringList("moreColor"));
         return il;
     }
 
